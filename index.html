@@ -293,7 +293,7 @@ function fa(x,len){
 }
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function showOnly(id){
-  ['sLoad','sRuolo','sPin','sHome','sSetup','sGame','sFinale'].forEach(function(s){
+  ['sLoad','sRuolo','sPin','sOtp','sHome','sSetup','sGame','sFinale'].forEach(function(s){
     var el=document.getElementById(s);
     if(el){if(s===id)el.classList.remove('hidden');else el.classList.add('hidden');}
   });
