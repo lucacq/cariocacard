@@ -81,6 +81,8 @@ table.main-grid thead th.col-mano{background:#f0eee9}
 .p-name{font-weight:700;font-size:12px;color:#1a1917;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .p-tot{font-size:13px;font-weight:700;color:#2563eb;font-family:monospace;display:block;margin-top:1px}
 .p-tot.best{color:#15803d}.p-tot.worst{color:#dc2626}
+/* pill giocatore */
+.gpill{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 tr.row-active{background:#eff6ff}
 tr.row-active td.col-mano{color:#2563eb;font-weight:700}
 td.col-mano{cursor:pointer;color:#57534e}
@@ -390,10 +392,22 @@ document.getElementById('logoBtn').onclick=function(){if(GS||ARB)showHome();};
 // ═══════════════════════
 function updateBadge(){
   var b=document.getElementById('ruoloBadge');
-  if(ARB){b.textContent='arbitro';b.className='arb';}
-  else if(NOME_GIOCATORE){b.textContent=NOME_GIOCATORE;b.className='sp';}
-  else{b.textContent='—';b.className='';}
-  document.getElementById('btnCambiaRuolo').style.display = (ARB||NOME_GIOCATORE)?'':'none';
+  if(ARB){
+    b.textContent='arbitro';b.className='arb';b.style.background='';b.style.color='';b.style.borderColor='';
+  } else if(NOME_GIOCATORE){
+    // trova indice del giocatore per il colore
+    var idx=0;
+    if(GS&&GS.players){
+      var pl=fa(GS.players,100).filter(function(p){return p!==null;});
+      idx=pl.indexOf(NOME_GIOCATORE); if(idx<0)idx=0;
+    }
+    var c=PILL_COLORS[idx%PILL_COLORS.length];
+    b.textContent=NOME_GIOCATORE; b.className='';
+    b.style.background=c.bg; b.style.color=c.tx; b.style.borderColor=c.tx;
+  } else {
+    b.textContent='—';b.className='';b.style.background='';b.style.color='';b.style.borderColor='';
+  }
+  document.getElementById('btnCambiaRuolo').style.display=(ARB||NOME_GIOCATORE)?'':'none';
 }
 
 function cambiaRuolo(){
@@ -800,9 +814,10 @@ function renderPuntiInputs(players,maniN,nM){
       MD[p]={punti:sc[MANO_SEL]!==null?Number(sc[MANO_SEL]):null,star:st[MANO_SEL]||false};
     });
   }
-  players.forEach(function(p){
+  players.forEach(function(p,pidx){
     var row=document.createElement('div');row.className='p-input-row';
-    var nm=document.createElement('div');nm.className='p-input-name';nm.textContent=p;
+    var nm=document.createElement('div');nm.className='p-input-name';
+    nm.innerHTML=pillHtml(p,pidx);
     var sb=document.createElement('button');
     sb.className='star-toggle'+(MD[p].star?' on':'');sb.type='button';sb.textContent='★';sb.title='ha chiuso';
     sb.onclick=function(){
@@ -865,9 +880,9 @@ function renderGrid(players,maniN,nM){
   var minT=Math.min.apply(null,vals),maxT=Math.max.apply(null,vals),allSame=minT===maxT;
 
   document.getElementById('gHead').innerHTML='<th class="col-mano">Mano</th>'+
-    players.map(function(p){
+    players.map(function(p,idx){
       var c=!allSame&&players.length>1?(tot[p]===minT?'best':tot[p]===maxT?'worst':''):'';
-      return '<th><div class="p-name">'+esc(p)+'</div><span class="p-tot '+c+'">'+tot[p]+'</span></th>';
+      return '<th>'+pillHtml(p,idx)+'<span class="p-tot '+c+'">'+tot[p]+'</span></th>';
     }).join('');
 
   document.getElementById('gBody').innerHTML=maniN.map(function(nome,i){
@@ -906,6 +921,19 @@ function renderFinale(){
 // ═══════════════════════
 function generaOtp(){
   var o='';for(var i=0;i<8;i++)o+=Math.floor(Math.random()*10);return o;
+}
+// colori pill giocatori — sfondo e testo
+var PILL_COLORS=[
+  {bg:'#dbeafe',tx:'#1e40af'}, // blu
+  {bg:'#dcfce7',tx:'#15803d'}, // verde
+  {bg:'#fce7f3',tx:'#9d174d'}, // rosa
+  {bg:'#fef9c3',tx:'#854d0e'}, // giallo
+  {bg:'#ede9fe',tx:'#6d28d9'}, // viola
+  {bg:'#ffedd5',tx:'#c2410c'}, // arancione
+];
+function pillHtml(nome, idx){
+  var c=PILL_COLORS[idx%PILL_COLORS.length];
+  return '<span class="gpill" style="background:'+c.bg+';color:'+c.tx+'">'+esc(nome)+'</span>';
 }
 function copiaOtp(){
   var otp=document.getElementById('otpDisplay').textContent;
