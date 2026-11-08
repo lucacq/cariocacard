@@ -632,7 +632,8 @@ function renderHome(){
 
   var players=fa(GS.players,100).filter(function(p){return p!==null;});
   var maniN=fa(GS.maniN,100).filter(function(m){return m!==null;});
-  var stato=GS.fase==='fine'?'Conclusa':'Mano selezionata: '+(MANO_SEL+1)+' · '+maniN[MANO_SEL];
+  var mSel=(GS.manoSel!==undefined&&GS.manoSel!==null)?GS.manoSel:0;
+  var stato=GS.fase==='fine'?'Conclusa':'Mano selezionata: '+(mSel+1)+' · '+maniN[mSel];
 
   statoEl.innerHTML='<div class="sec-title">Stato partita</div>'+
     '<div class="home-row"><div class="home-label">Variante</div><div class="home-val">'+(GS.variante==='completa'?'Carioca completa':'Carioca normale')+'</div></div>'+
@@ -748,7 +749,8 @@ function startGame(){
   DB.set({variante:variante,players:players,mazziere:mazziere,
     maniN:mani.map(function(m){return m.n;}),
     maniD:mani.map(function(m){return m.d;}),
-    scores:scores,stars:stars,fase:'gioco',otp:otp,attesa:{},autorizzati:{}});
+    scores:scores,stars:stars,fase:'gioco',otp:otp,
+    manoSel:0,attesa:{},autorizzati:{}});
 }
 
 // ═══════════════════════
@@ -760,7 +762,9 @@ function renderGame(){
   var maniN=fa(GS.maniN,100).filter(function(m){return m!==null;});
   var maniD=fa(GS.maniD,100).filter(function(m){return m!==null;});
   var nM=maniN.length;
-  if(MANO_SEL>=nM)MANO_SEL=0;
+  // legge mano selezionata da Firebase (sincronizzata su tutti i dispositivi)
+  MANO_SEL = (GS.manoSel !== undefined && GS.manoSel !== null) ? GS.manoSel : 0;
+  if(MANO_SEL>=nM) MANO_SEL=0;
 
   document.getElementById('mCnt').textContent='Mano '+(MANO_SEL+1)+' di '+nM;
   document.getElementById('mNome').textContent=maniN[MANO_SEL]||'';
@@ -780,17 +784,10 @@ function renderGame(){
 }
 
 function selezionaMano(idx){
-  MD={_mano:-1};MANO_SEL=idx;
-  if(!GS)return;
-  var players=fa(GS.players,100).filter(function(p){return p!==null;});
-  var maniN=fa(GS.maniN,100).filter(function(m){return m!==null;});
-  var maniD=fa(GS.maniD,100).filter(function(m){return m!==null;});
-  var nM=maniN.length;
-  document.getElementById('mCnt').textContent='Mano '+(MANO_SEL+1)+' di '+nM;
-  document.getElementById('mNome').textContent=maniN[MANO_SEL]||'';
-  document.getElementById('mDesc').textContent=maniD[MANO_SEL]||'';
-  if(ARB)renderPuntiInputs(players,maniN,nM);
-  renderGrid(players,maniN,nM);
+  if(!ARB) return; // solo l'arbitro può cambiare la mano
+  MD={_mano:-1};
+  // salva su Firebase — tutti i dispositivi si aggiornano via listener
+  DB.child('manoSel').set(idx);
 }
 
 function renderPuntiInputs(players,maniN,nM){
