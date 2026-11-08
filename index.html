@@ -110,7 +110,10 @@ td.cell-cur{color:#2563eb;font-weight:600}
 <body>
 <header>
   <h1 id="logoBtn">Carioca 🎴</h1>
-  <span id="ruoloBadge">—</span>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span id="ruoloBadge">—</span>
+    <button class="bg bs" id="btnCambiaRuolo" onclick="cambiaRuolo()" style="font-size:11px;padding:4px 8px;display:none">Cambia ruolo</button>
+  </div>
 </header>
 <main>
 
@@ -301,16 +304,67 @@ document.getElementById('logoBtn').onclick=function(){if(GS||ARB)showHome();};
 // BOOT
 (function(){
   var r=localStorage.getItem('cr');
-  if(r!==null){ARB=r==='1';updateBadge();startListen();}
-  else showOnly('sRuolo');
+  var blk=localStorage.getItem('otp_blk');
+  if(blk==='1'){
+    // bloccato — mostra schermata ruolo con messaggio
+    showOnly('sRuolo');
+    return;
+  }
+  if(r==='1'){
+    // era arbitro — riprende direttamente
+    ARB=true; updateBadge(); startListen();
+  } else if(r==='0'){
+    // era giocatore — deve verificare OTP contro la partita corrente
+    // aspettiamo Firebase per controllare se la partita è la stessa
+    showOnly('sLoad');
+    firebase.database().ref('partita/otp').once('value', function(snap){
+      var otpAttuale=snap.val();
+      var otpVerificata=localStorage.getItem('otp_pid');
+      if(otpAttuale && otpAttuale===otpVerificata){
+        // stessa partita, accesso ok
+        ARB=false; updateBadge(); startListen();
+      } else {
+        // partita nuova o OTP diversa — deve reinserire
+        localStorage.removeItem('cr');
+        localStorage.removeItem('otp_pid');
+        showOnly('sRuolo');
+      }
+    });
+  } else {
+    showOnly('sRuolo');
+  }
 })();
 
 function updateBadge(){
   var b=document.getElementById('ruoloBadge');
   b.textContent=ARB?'arbitro':'spettatore';
   if(ARB)b.classList.add('arb');else b.classList.remove('arb');
+  // mostra sempre il pulsante cambia ruolo dopo la scelta
+  document.getElementById('btnCambiaRuolo').style.display='';
 }
-function setRuolo(isArb){ARB=isArb;localStorage.setItem('cr',isArb?'1':'0');updateBadge();startListen();}
+
+function cambiaRuolo(){
+  // reset tutto
+  ARB=false;
+  localStorage.removeItem('cr');
+  localStorage.removeItem('otp_t');
+  localStorage.removeItem('otp_blk');
+  localStorage.removeItem('otp_pid'); // id partita verificata
+  OTP_TENTATIVI=0;
+  document.getElementById('btnCambiaRuolo').style.display='none';
+  var b=document.getElementById('ruoloBadge');
+  b.textContent='—'; b.classList.remove('arb');
+  showOnly('sRuolo');
+}
+
+function setRuolo(isArb){
+  ARB=isArb;
+  localStorage.setItem('cr',isArb?'1':'0');
+  // salva l'id della partita per cui è stato verificato l'accesso
+  if(!isArb&&GS&&GS.otp) localStorage.setItem('otp_pid', GS.otp);
+  updateBadge();
+  startListen();
+}
 
 // PIN
 function mostraPin(){
