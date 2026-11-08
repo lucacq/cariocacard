@@ -652,12 +652,20 @@ function renderHome(){
         var save=document.createElement('button');save.className='bp bs';save.textContent='Salva';
         save.onclick=function(){
           var n=inp.value.trim();if(!n||n===p){renderHome();return;}
-          var np=fa(GS.players,100).filter(function(x){return x!==null;});np[idx]=n;
+          var np=fa(GS.players,100).filter(function(x){return x!==null;});
+          np[idx]=n;
+          // costruiamo i nuovi scores e stars copiando i dati del vecchio nome nel nuovo
           var ns={},nst={};
           fa(GS.players,100).filter(function(x){return x!==null;}).forEach(function(pl,i){
-            var k=i===idx?n:pl;ns[k]=GS.scores[pl];nst[k]=GS.stars[pl];
+            var nuovaChiave = (i===idx) ? n : pl;
+            // copia tutti i valori (Firebase li salva come oggetti con chiavi numeriche)
+            ns[nuovaChiave]  = GS.scores ? (GS.scores[pl] || {}) : {};
+            nst[nuovaChiave] = GS.stars  ? (GS.stars[pl]  || {}) : {};
           });
-          DB.update({players:np,scores:ns,stars:nst});
+          // usa set separati per evitare conflitti
+          DB.child('players').set(np);
+          DB.child('scores').set(ns);
+          DB.child('stars').set(nst);
         };
         inp.onkeydown=function(e){if(e.key==='Enter')save.onclick();};
         row.innerHTML='';row.appendChild(inp);row.appendChild(save);
