@@ -203,7 +203,7 @@ td.cell-cur{color:#2563eb;font-weight:600}
     <div class="sec-title">Accesso giocatore</div>
     <div class="centro">
       <div class="emoji-big">🃏</div>
-      <div class="c-sub">Inserisci la password di 8 cifre fornita dall'arbitro</div>
+      <div class="c-sub">Inserisci il codice partita a 8 cifre fornito dall'arbitro</div>
       <div class="digit-row" id="otpRow"></div>
       <div class="err" id="otpErr"></div>
       <div class="btn-row">
@@ -292,7 +292,7 @@ td.cell-cur{color:#2563eb;font-weight:600}
 <div id="sGame" class="hidden">
   <div class="otp-banner hidden" id="otpBanner">
     <div>
-      <div style="font-size:11px;color:#b45309;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Password partita</div>
+      <div style="font-size:11px;color:#b45309;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Codice partita — condividi con i giocatori</div>
       <div class="otp-code" id="otpDisplay"></div>
     </div>
     <button class="bg bs" onclick="copiaOtp()">Copia</button>
@@ -454,12 +454,23 @@ function cambiaRuolo(){
   } else if(cr==='0' && !blk){
     // era giocatore — verifica se la partita è ancora la stessa
     showOnly('sLoad');
-    firebase.database().ref('partita/otp').once('value',function(snap){
-      var otpOra = snap.val();
-      var otpSalvata = localStorage.getItem('otp_pid');
-      var nomeSalvato = localStorage.getItem('nome_g');
+    firebase.database().ref('partita').once('value',function(snap){
+      var dati=snap.val();
+      var otpOra=dati?dati.otp:null;
+      var otpSalvata=localStorage.getItem('otp_pid');
+      var nomeSalvato=localStorage.getItem('nome_g');
       if(otpOra && otpOra===otpSalvata && nomeSalvato){
-        NOME_GIOCATORE=nomeSalvato; updateBadge(); startListen();
+        NOME_GIOCATORE=nomeSalvato; updateBadge();
+        // controlla se è già autorizzato
+        var autorizzato=dati.autorizzati && dati.autorizzati[nomeSalvato]===true;
+        if(autorizzato){
+          startListen(); // va in partita
+        } else {
+          // rimette in sala d'attesa e riascolta autorizzazione
+          GS=dati;
+          startListen();
+          mostraSalaAttesa();
+        }
       } else {
         localStorage.removeItem('cr');
         localStorage.removeItem('otp_pid');
@@ -627,7 +638,7 @@ function inviaRecuperoPin(){
 // ═══════════════════════
 function mostraOtp(){
   if(localStorage.getItem('otp_blk')==='1'){
-    alert('Accesso bloccato dopo troppi tentativi errati. Contatta l\'arbitro.');
+    alert('Accesso bloccato dopo troppi tentativi errati.\nChiedi all\'arbitro di avviare una nuova partita per ottenere un nuovo codice.');
     return;
   }
   showOnly('sOtp');
@@ -646,7 +657,7 @@ function checkOtp(){
   firebase.database().ref('partita/otp').once('value',function(snap){
     var otpOra=snap.val();
     if(!otpOra){
-      document.getElementById('otpErr').textContent='Nessuna partita in corso. Attendi l\'arbitro.';
+      document.getElementById('otpErr').textContent='Nessuna partita in corso. Attendi che l\'arbitro avvii la partita e ti fornisca il codice.';
       return;
     }
     if(inserita===String(otpOra)){
@@ -662,10 +673,10 @@ function checkOtp(){
       var rim=OTP_MAX-OTP_T;
       if(rim<=0){
         localStorage.setItem('otp_blk','1');
-        document.getElementById('otpErr').textContent='Accesso bloccato — troppi tentativi.';
+        document.getElementById('otpErr').textContent='Accesso bloccato — troppi tentativi errati. Chiedi un nuovo codice all\'arbitro.';
         setTimeout(function(){showOnly('sRuolo');},2000);
       } else {
-        document.getElementById('otpErr').textContent='Password errata. Tentativi rimanenti: '+rim;
+        document.getElementById('otpErr').textContent='Codice errato. Tentativi rimanenti: '+rim;
         clearDigits('ot',8); document.getElementById('ot0').focus();
       }
     }
@@ -719,7 +730,7 @@ function confermaNome(){
 // ═══════════════════════
 function mostraSalaAttesa(){
   showOnly('sAttesa');
-  document.getElementById('attesaInfo').textContent='Ciao '+NOME_GIOCATORE+'! Sei in sala d\'attesa. L\'arbitro ti autorizzerà a sederti al tavolo.';
+  document.getElementById('attesaInfo').textContent='Ciao '+NOME_GIOCATORE+'! Hai inserito il codice corretto. Attendi che l\'arbitro ti autorizzi a sederti al tavolo.';
   // ascolta autorizzazione
   firebase.database().ref('partita/autorizzati/'+NOME_GIOCATORE).on('value',function(snap){
     if(snap.val()===true){
@@ -755,13 +766,58 @@ function startListen(){
   showOnly('sLoad');
   DB.on('value',function(snap){
     GS=snap.val();
+
+    // logout forzato giocatore se la OTP è cambiata (nuova partita)
+    if(!ARB && NOME_GIOCATORE){
+      var otpSalvata=localStorage.getItem('otp_pid');
+      var otpOra=GS?GS.otp:null;
+      if(otpOra && otpSalvata && otpOra!==otpSalvata){
+        // nuova partita — forza logout
+        NOME_GIOCATORE=null;
+        localStorage.removeItem('cr');
+        localStorage.removeItem('otp_pid');
+        localStorage.removeItem('nome_g');
+        localStorage.removeItem('otp_t');
+        localStorage.removeItem('otp_blk');
+        updateBadge();
+        showOnly('sRuolo');
+        return;
+      }
+      // se non c'è più partita
+      if(!GS){
+        NOME_GIOCATORE=null;
+        localStorage.removeItem('cr');
+        localStorage.removeItem('otp_pid');
+        localStorage.removeItem('nome_g');
+        updateBadge();
+        showOnly('sRuolo');
+        return;
+      }
+    }
+
     var cur=document.querySelector('main > div:not(.hidden)');
     var curId=cur?cur.id:'';
-    // non interrompere sale d'attesa/benvenuto con aggiornamenti Firebase
-    if(curId==='sAttesa'||curId==='sBenvenuto') return;
+
+    // schermata benvenuto: non interrompere mai
+    if(curId==='sBenvenuto') return;
+
+    // sala d'attesa: controlla se nel frattempo è stato autorizzato
+    if(curId==='sAttesa'){
+      if(GS && NOME_GIOCATORE && GS.autorizzati && GS.autorizzati[NOME_GIOCATORE]===true){
+        mostraBenvenuto();
+      }
+      // altrimenti rimane in attesa
+      return;
+    }
+
     if(curId==='sGame'){renderGame();return;}
     if(curId==='sFinale'){renderFinale();return;}
     if(curId==='sHome'){renderHome();return;}
+
+    // schermate di setup/pin/ruolo/load: usa route per decidere
+    // ma solo se il giocatore è già identificato
+    if(curId==='sRuolo'||curId==='sPin'||curId==='sOtp'||curId==='sNome'||curId==='sArbGioca') return;
+
     route();
   });
 }
@@ -770,10 +826,30 @@ function route(){
   if(!GS){
     if(ARB){showOnly('sSetup');initSetup();}
     else{showOnly('sLoad');document.querySelector('#sLoad p').textContent='In attesa che l\'arbitro avvii la partita…';}
-  } else if(GS.fase==='fine'){
+    return;
+  }
+  if(GS.fase==='fine'){
     showOnly('sFinale');renderFinale();
-  } else {
+    return;
+  }
+  // partita in corso
+  if(ARB){
     showOnly('sGame');renderGame();
+    return;
+  }
+  // giocatore: verifica se è autorizzato
+  if(!NOME_GIOCATORE){
+    // non ha ancora scelto il nome — rimane in attesa
+    showOnly('sLoad');
+    document.querySelector('#sLoad p').textContent='In attesa di autorizzazione…';
+    return;
+  }
+  var autorizzato = GS.autorizzati && GS.autorizzati[NOME_GIOCATORE]===true;
+  if(autorizzato){
+    showOnly('sGame');renderGame();
+  } else {
+    // non ancora autorizzato — torna in sala d'attesa
+    mostraSalaAttesa();
   }
 }
 
