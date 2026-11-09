@@ -181,6 +181,22 @@ td.cell-cur{color:#2563eb;font-weight:600}
   </section>
 </div>
 
+<!-- ARBITRO: giochi anche tu? -->
+<div id="sArbGioca" class="hidden">
+  <section>
+    <div class="sec-title">Accesso arbitro</div>
+    <div class="centro">
+      <div class="emoji-big">🎮</div>
+      <div class="c-title">Giochi anche tu?</div>
+      <div class="c-sub">Seleziona il tuo nome se partecipi come giocatore, oppure entra solo come arbitro.</div>
+      <div class="nome-list" id="arbNomeList"></div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="bg" onclick="arbSoloArbitro()">Solo arbitro</button>
+      </div>
+    </div>
+  </section>
+</div>
+
 <!-- OTP GIOCATORE: inserimento password -->
 <div id="sOtp" class="hidden">
   <section>
@@ -368,7 +384,7 @@ var ARB = false;
 var MD = {}, MANO_SEL = 0;
 var OTP_T = 0, OTP_MAX = 4;
 var NOME_GIOCATORE = null; // nome scelto dal giocatore
-var ALL_SCREENS = ['sLoad','sRuolo','sPin','sOtp','sNome','sAttesa','sBenvenuto','sHome','sSetup','sGame','sFinale'];
+var ALL_SCREENS = ['sLoad','sRuolo','sPin','sArbGioca','sOtp','sNome','sAttesa','sBenvenuto','sHome','sSetup','sGame','sFinale'];
 
 function fa(x, len) {
   if(!x) return new Array(len).fill(null);
@@ -431,7 +447,10 @@ function cambiaRuolo(){
   var blk = localStorage.getItem('otp_blk');
 
   if(cr==='1'){
-    ARB=true; updateBadge(); startListen();
+    ARB=true;
+    var nomeArb=localStorage.getItem('nome_g');
+    if(nomeArb) NOME_GIOCATORE=nomeArb;
+    updateBadge(); startListen();
   } else if(cr==='0' && !blk){
     // era giocatore — verifica se la partita è ancora la stessa
     showOnly('sLoad');
@@ -537,7 +556,16 @@ function checkPin(){
   if(p===PIN){
     localStorage.removeItem('pin_t');
     PIN_TENTATIVI=0;
-    ARB=true;localStorage.setItem('cr','1');updateBadge();startListen();
+    ARB=true; localStorage.setItem('cr','1'); updateBadge();
+    // controlla se c'è una partita in corso — se sì chiede se gioca anche lui
+    firebase.database().ref('partita/players').once('value', function(snap){
+      var pl=snap.val();
+      if(pl){
+        var players=fa(pl,100).filter(function(p){return p!==null;});
+        if(players.length>0){ mostraArbGioca(players); return; }
+      }
+      startListen();
+    });
   } else {
     PIN_TENTATIVI++;
     localStorage.setItem('pin_t',PIN_TENTATIVI);
@@ -553,6 +581,30 @@ function checkPin(){
       inp.value=''; inp.setAttribute('data-val',''); inp.focus();
     }
   }
+}
+
+function mostraArbGioca(players){
+  showOnly('sArbGioca');
+  var list=document.getElementById('arbNomeList');
+  list.innerHTML='';
+  players.forEach(function(p){
+    var btn=document.createElement('button');
+    btn.className='nome-btn'; btn.textContent=p;
+    btn.onclick=function(){
+      NOME_GIOCATORE=p;
+      localStorage.setItem('nome_g',p);
+      updateBadge();
+      startListen();
+    };
+    list.appendChild(btn);
+  });
+}
+
+function arbSoloArbitro(){
+  NOME_GIOCATORE=null;
+  localStorage.removeItem('nome_g');
+  updateBadge();
+  startListen();
 }
 
 function inviaRecuperoPin(){
