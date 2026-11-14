@@ -410,10 +410,13 @@ function showOnly(id){
     if(el){if(s===id)el.classList.remove('hidden');else el.classList.add('hidden');}
   });
 }
-function showHome(){showOnly('sHome');renderHome();}
+function showHome(){
+  if(!ARB && !NOME_GIOCATORE){ DB.off(); listening=false; showOnly('sRuolo'); return; }
+  showOnly('sHome');renderHome();
+}
 document.getElementById('logoBtn').onclick=function(){
   if(ARB||NOME_GIOCATORE) showHome();
-  else showOnly('sRuolo');
+  else { DB.off(); listening=false; showOnly('sRuolo'); }
 };
 
 // ═══════════════════════
@@ -882,8 +885,9 @@ function startListen(){
 }
 
 function route(){
-  // sicurezza: se non autenticato rimanda sempre alla scelta ruolo
+  // sicurezza: se non autenticato ferma il listener e mostra scelta ruolo
   if(!ARB && !NOME_GIOCATORE){
+    DB.off(); listening=false;
     showOnly('sRuolo');
     return;
   }
@@ -921,6 +925,7 @@ function route(){
 // HOME
 // ═══════════════════════
 function renderHome(){
+  if(!ARB && !NOME_GIOCATORE){ DB.off(); listening=false; showOnly('sRuolo'); return; }
   var statoEl=document.getElementById('homeStato');
   var giocEl=document.getElementById('homeGioc');
   var listEl=document.getElementById('homeGiocList');
