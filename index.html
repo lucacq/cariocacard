@@ -160,8 +160,11 @@ td.cell-cur{color:#2563eb;font-weight:600}
         <button class="bp" onclick="mostraPin()">Sono l'arbitro</button>
         <button class="bg" onclick="mostraOtp()">Sono un giocatore</button>
       </div>
-      <div style="margin-top:16px;font-size:12px;color:#a8a29e">
-        Sei bloccato? <a href="#" onclick="mostraPin()" style="color:#2563eb">Accedi come arbitro</a> per resettare la partita.
+      <div id="btnSblocca" style="margin-top:16px;display:none">
+        <button class="bg bs" onclick="sbloccaDispositivo()" style="font-size:12px;color:#dc2626;border-color:#fca5a5">
+          🔓 Sblocca dispositivo
+        </button>
+        <div style="font-size:11px;color:#a8a29e;margin-top:4px">Rimuove la sessione salvata su questo dispositivo</div>
       </div>
     </div>
   </section>
@@ -466,6 +469,12 @@ function cambiaRuolo(){
 (function boot(){
   var cr  = localStorage.getItem('cr');
   var blk = localStorage.getItem('otp_blk');
+  // mostra pulsante sblocca se c'è qualcosa salvato nel localStorage
+  var hasSessione = cr || localStorage.getItem('otp_pid') || localStorage.getItem('pin_blk') || blk;
+  if(hasSessione){
+    var bs=document.getElementById('btnSblocca');
+    if(bs) bs.style.display='';
+  }
 
   if(cr==='1'){
     ARB=true;
@@ -637,6 +646,21 @@ function arbSoloArbitro(){
   localStorage.removeItem('nome_g');
   updateBadge();
   startListen();
+}
+
+function sbloccaDispositivo(){
+  if(confirm('Rimuovere la sessione salvata su questo dispositivo?\nDovrai scegliere di nuovo il ruolo.')){
+    localStorage.removeItem('cr');
+    localStorage.removeItem('otp_pid');
+    localStorage.removeItem('otp_t');
+    localStorage.removeItem('otp_blk');
+    localStorage.removeItem('nome_g');
+    localStorage.removeItem('pin_t');
+    localStorage.removeItem('pin_blk');
+    NOME_GIOCATORE=null; ARB=false;
+    updateBadge();
+    location.reload();
+  }
 }
 
 function arbResetPartita(){
