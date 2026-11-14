@@ -160,6 +160,9 @@ td.cell-cur{color:#2563eb;font-weight:600}
         <button class="bp" onclick="mostraPin()">Sono l'arbitro</button>
         <button class="bg" onclick="mostraOtp()">Sono un giocatore</button>
       </div>
+      <div style="margin-top:16px;font-size:12px;color:#a8a29e">
+        Sei bloccato? <a href="#" onclick="mostraPin()" style="color:#2563eb">Accedi come arbitro</a> per resettare la partita.
+      </div>
     </div>
   </section>
 </div>
@@ -192,6 +195,7 @@ td.cell-cur{color:#2563eb;font-weight:600}
       <div class="nome-list" id="arbNomeList"></div>
       <div class="btn-row" style="margin-top:8px">
         <button class="bg" onclick="arbSoloArbitro()">Solo arbitro</button>
+        <button class="bd bs" onclick="arbResetPartita()">Reset partita</button>
       </div>
     </div>
   </section>
@@ -326,7 +330,10 @@ td.cell-cur{color:#2563eb;font-weight:600}
     </div>
   </section>
 
-  <button class="bg" style="width:100%" onclick="showHome()">↩ Home</button>
+  <div style="display:flex;gap:8px">
+    <button class="bg" style="flex:1" onclick="showHome()">↩ Home</button>
+    <button class="bd bs" id="btnResetGame" style="display:none" onclick="arbResetPartita()">Reset partita</button>
+  </div>
 </div>
 
 <!-- FINALE -->
@@ -630,6 +637,17 @@ function arbSoloArbitro(){
   localStorage.removeItem('nome_g');
   updateBadge();
   startListen();
+}
+
+function arbResetPartita(){
+  if(confirm('Resettare la partita in corso? Tutti i punteggi andranno persi.')){
+    NOME_GIOCATORE=null;
+    localStorage.removeItem('nome_g');
+    updateBadge();
+    DB.remove();
+    showOnly('sSetup');
+    initSetup();
+  }
 }
 
 function inviaRecuperoPin(){
@@ -1033,8 +1051,12 @@ function renderGame(){
     ps.classList.remove('hidden');sn.classList.add('hidden');
     renderPuntiInputs(players,maniN,nM);
     if(GS.otp){ob.classList.remove('hidden');document.getElementById('otpDisplay').textContent=GS.otp;}
+    var br=document.getElementById('btnResetGame');
+    if(br) br.style.display='';
   } else {
     ps.classList.add('hidden');sn.classList.remove('hidden');ob.classList.add('hidden');
+    var br=document.getElementById('btnResetGame');
+    if(br) br.style.display='none';
   }
   renderGrid(players,maniN,nM);
 }
