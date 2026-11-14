@@ -161,9 +161,7 @@ td.cell-cur{color:#2563eb;font-weight:600}
         <button class="bg" onclick="mostraOtp()">Sono un giocatore</button>
       </div>
       <div id="btnSblocca" style="margin-top:16px;display:none">
-        <button class="bg bs" onclick="sbloccaDispositivo()" style="font-size:12px;color:#dc2626;border-color:#fca5a5">
-          🔓 Sblocca dispositivo
-        </button>
+        <button class="bg bs" onclick="sbloccaDispositivo()" style="font-size:12px;color:#dc2626;border-color:#fca5a5">🔓 Sblocca dispositivo</button>
         <div style="font-size:11px;color:#a8a29e;margin-top:4px">Rimuove la sessione salvata su questo dispositivo</div>
       </div>
     </div>
@@ -412,7 +410,7 @@ function showOnly(id){
 }
 function showHome(){
   if(!ARB && !NOME_GIOCATORE){ DB.off(); listening=false; showOnly('sRuolo'); return; }
-  showOnly('sHome');renderHome();
+  showOnly('sHome'); renderHome();
 }
 document.getElementById('logoBtn').onclick=function(){
   if(ARB||NOME_GIOCATORE) showHome();
@@ -475,11 +473,8 @@ function cambiaRuolo(){
 (function boot(){
   var cr  = localStorage.getItem('cr');
   var blk = localStorage.getItem('otp_blk');
-  // mostra pulsante sblocca se c'è qualcosa salvato nel localStorage
-  var hasSessione = cr || localStorage.getItem('otp_pid') || localStorage.getItem('pin_blk') || blk;
-  if(hasSessione){
-    var bs=document.getElementById('btnSblocca');
-    if(bs) bs.style.display='';
+  if(cr || localStorage.getItem('otp_pid') || localStorage.getItem('pin_blk') || blk){
+    var bs=document.getElementById('btnSblocca'); if(bs) bs.style.display='';
   }
 
   if(cr==='1'){
@@ -656,27 +651,16 @@ function arbSoloArbitro(){
 
 function sbloccaDispositivo(){
   if(confirm('Rimuovere la sessione salvata su questo dispositivo?\nDovrai scegliere di nuovo il ruolo.')){
-    localStorage.removeItem('cr');
-    localStorage.removeItem('otp_pid');
-    localStorage.removeItem('otp_t');
-    localStorage.removeItem('otp_blk');
-    localStorage.removeItem('nome_g');
-    localStorage.removeItem('pin_t');
-    localStorage.removeItem('pin_blk');
+    ['cr','otp_pid','otp_t','otp_blk','nome_g','pin_t','pin_blk'].forEach(function(k){localStorage.removeItem(k);});
     NOME_GIOCATORE=null; ARB=false;
-    updateBadge();
-    location.reload();
+    updateBadge(); location.reload();
   }
 }
 
 function arbResetPartita(){
   if(confirm('Resettare la partita in corso? Tutti i punteggi andranno persi.')){
-    NOME_GIOCATORE=null;
-    localStorage.removeItem('nome_g');
-    updateBadge();
-    DB.remove();
-    showOnly('sSetup');
-    initSetup();
+    NOME_GIOCATORE=null; localStorage.removeItem('nome_g'); updateBadge();
+    DB.remove(); showOnly('sSetup'); initSetup();
   }
 }
 
@@ -885,12 +869,7 @@ function startListen(){
 }
 
 function route(){
-  // sicurezza: se non autenticato ferma il listener e mostra scelta ruolo
-  if(!ARB && !NOME_GIOCATORE){
-    DB.off(); listening=false;
-    showOnly('sRuolo');
-    return;
-  }
+  if(!ARB && !NOME_GIOCATORE){ DB.off(); listening=false; showOnly('sRuolo'); return; }
   if(!GS){
     if(ARB){showOnly('sSetup');initSetup();}
     else{showOnly('sLoad');document.querySelector('#sLoad p').textContent='In attesa che l\'arbitro avvii la partita…';}
@@ -1088,12 +1067,10 @@ function renderGame(){
     ps.classList.remove('hidden');sn.classList.add('hidden');
     renderPuntiInputs(players,maniN,nM);
     if(GS.otp){ob.classList.remove('hidden');document.getElementById('otpDisplay').textContent=GS.otp;}
-    var br=document.getElementById('btnResetGame');
-    if(br) br.style.display='';
+    var br=document.getElementById('btnResetGame'); if(br) br.style.display='';
   } else {
     ps.classList.add('hidden');sn.classList.remove('hidden');ob.classList.add('hidden');
-    var br=document.getElementById('btnResetGame');
-    if(br) br.style.display='none';
+    var br=document.getElementById('btnResetGame'); if(br) br.style.display='none';
   }
   renderGrid(players,maniN,nM);
 }
