@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Carioca</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}
+body{background:#f5f4f0;color:#1a1917;font-size:14px;padding-bottom:30px}
+header{background:#fff;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:99}
+h1{font-size:1rem;font-weight:700;cursor:pointer}
+#ruoloBadge{font-size:11px;padding:2px 8px;border-radius:12px;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;white-space:nowrap}
+#ruoloBadge.arb{background:#dcfce7;color:#15803d;border-color:#86efac}
+#ruoloBadge.sp{background:#eff6ff;color:#2563eb;border-color:#bfdbfe}
+main{padding:12px;max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+section{background:#fff;border:1px solid #ddd;border-radius:10px;overflow:hidden}
+.sec-title{background:#f0eee9;padding:7px 12px;font-size:11px;font-weight:600;color:#78716c;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #ddd}
+button{cursor:pointer;font-size:14px;font-weight:600;padding:9px 16px;border-radius:8px;border:none;-webkit-tap-highlight-color:transparent}
+button:active{opacity:.7}
+.bp{background:#2563eb;color:#fff}
+.bg{background:#fff;color:#57534e;border:1px solid #ddd}
+.bd{background:#dc2626;color:#fff}
+.bs{padding:6px 12px;font-size:12px}
+.hidden{display:none!important}
+
+/* CENTRO */
+.centro{padding:28px 16px;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+.emoji-big{font-size:72px;line-height:1}
+.c-title{font-size:18px;font-weight:700}
+.c-sub{font-size:13px;color:#57534e;max-width:300px;line-height:1.5}
+
+/* PIN / OTP */
+.digit-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.pdig{width:44px;height:52px;font-size:22px;font-weight:700;text-align:center;border:2px solid #ddd;border-radius:8px;background:#fff;color:#1a1917;outline:none;font-family:monospace}
+.pdig:focus{border-color:#2563eb}
+.err{color:#dc2626;font-size:12px;min-height:16px;text-align:center}
+.btn-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+
+/* SCELTA NOME */
+.nome-list{display:flex;flex-direction:column;gap:6px;width:100%;max-width:280px}
+.nome-btn{padding:10px 16px;border-radius:8px;border:1px solid #ddd;background:#f5f4f0;color:#1a1917;font-weight:600;font-size:14px;cursor:pointer;text-align:left}
+.nome-btn:hover{background:#eff6ff;border-color:#bfdbfe}
+.nome-btn.sel{background:#2563eb;color:#fff;border-color:#2563eb}
+
+/* SALA ATTESA */
+.attesa-info{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;font-size:13px;color:#78350f;line-height:1.6;width:100%;max-width:300px;text-align:left}
+.attesa-pulse{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* BENVENUTO */
+.tavolo-info{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 16px;font-size:13px;color:#14532d;line-height:1.8;width:100%;max-width:300px;text-align:left}
+.tavolo-info strong{font-weight:700}
+
+/* SETUP */
+.var-row{display:flex;gap:8px;padding:10px 12px;border-bottom:1px solid #ddd}
+.vbtn{flex:1;text-align:center;padding:9px 4px;border-radius:8px;border:1px solid #ddd;background:#f0eee9;color:#57534e;font-weight:500;font-size:13px;cursor:pointer}
+.vbtn.sel{background:#eff6ff;border-color:#bfdbfe;color:#2563eb;font-weight:700}
+.prow{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #eee}
+.prow:last-child{border-bottom:none}
+.pnum{font-size:11px;color:#a8a29e;width:14px;flex-shrink:0}
+input[type=text]{flex:1;padding:8px 10px;font-size:14px;border:1px solid #ddd;border-radius:8px;background:#f5f4f0;color:#1a1917;outline:none;min-width:0}
+input[type=text]:focus{border-color:#2563eb;background:#fff}
+input[type=radio]{width:16px;height:16px;accent-color:#2563eb}
+.foot{padding:10px 12px;border-top:1px solid #ddd;display:flex;justify-content:flex-end;gap:8px;align-items:center}
+
+/* MANO */
+.mano-box{padding:12px}
+.mano-num{font-size:11px;color:#a8a29e;margin-bottom:1px;font-family:monospace}
+.mano-nome{font-size:20px;font-weight:700;line-height:1.2}
+.mano-desc{font-size:12px;color:#57534e;margin-top:3px}
+
+/* GRIGLIA */
+.grid-container{width:100%;overflow:hidden}
+table.main-grid{width:100%;border-collapse:collapse;table-layout:fixed}
+table.main-grid .col-mano{width:110px}
+@media(max-width:400px){table.main-grid .col-mano{width:88px}}
+table.main-grid th,table.main-grid td{padding:7px 5px;border-bottom:1px solid #eee;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+table.main-grid th.col-mano,table.main-grid td.col-mano{text-align:left;border-right:1px solid #eee;padding-left:10px;font-size:11px}
+table.main-grid thead th{background:#f0eee9;font-size:11px;font-weight:600;color:#78716c}
+table.main-grid thead th.col-mano{background:#f0eee9}
+.p-name{font-weight:700;font-size:12px;color:#1a1917;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-tot{font-size:13px;font-weight:700;color:#2563eb;font-family:monospace;display:block;margin-top:1px}
+.p-tot.best{color:#15803d}.p-tot.worst{color:#dc2626}
+/* pill giocatore */
+.gpill{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+tr.row-active{background:#eff6ff}
+tr.row-active td.col-mano{color:#2563eb;font-weight:700}
+td.col-mano{cursor:pointer;color:#57534e}
+td.col-mano:hover{background:#f0eee9}
+tr.row-active td.col-mano:hover{background:#eff6ff}
+td.cell-star{color:#b45309;font-weight:700}
+td.cell-cur{color:#2563eb;font-weight:600}
+.legenda{font-size:10px;color:#a8a29e;padding:5px 10px;display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid #eee}
+
+/* INSERIMENTO */
+#puntiSection{padding:12px;border-top:1px solid #eee}
+.p-input-row{display:flex;align-items:center;gap:6px;padding:7px 8px;background:#f5f4f0;border-radius:8px;margin-bottom:5px;flex-wrap:nowrap}
+.p-input-name{font-weight:600;font-size:13px;flex:1;min-width:50px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.num-wrap{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.nbtn{width:34px;height:34px;border-radius:7px;border:1px solid #ddd;background:#fff;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.nbtn:active{background:#ddd}
+.nval{width:52px;text-align:center;font-family:monospace;font-size:15px;font-weight:700;border:1px solid #ddd;border-radius:7px;padding:6px 2px;background:#fff;color:#1a1917;outline:none}
+.nval:focus{border-color:#2563eb}
+.nval:disabled{background:#f0eee9;color:#a8a29e}
+.star-toggle{display:flex;align-items:center;gap:4px;padding:6px 8px;border-radius:7px;border:1px solid #ddd;background:#fff;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.star-toggle.on{background:#fffbeb;border-color:#fde68a;color:#b45309;font-weight:700}
+.conf-btn{margin-top:10px;width:100%}
+
+/* OTP BANNER ARBITRO */
+.otp-banner{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.otp-code{font-family:monospace;font-size:24px;font-weight:700;letter-spacing:.15em;color:#1a1917;flex:1}
+
+/* ATTESA ARBITRO — lista giocatori in attesa */
+.attesa-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #eee}
+.attesa-row:last-child{border-bottom:none}
+.attesa-nome{flex:1;font-weight:600}
+.attesa-stato{font-size:12px;color:#a8a29e}
+
+/* HOME */
+.home-row{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #eee}
+.home-row:last-child{border-bottom:none}
+.home-label{flex:1;font-weight:500;font-size:13px}
+.home-val{font-size:12px;color:#57534e}
+.edit-inp{flex:1;padding:6px 10px;font-size:13px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;color:#1a1917;outline:none}
+
+/* FINALE */
+.fi{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #eee}
+.fi:last-child{border-bottom:none}
+.fr{font-size:1.2rem;font-weight:700;color:#a8a29e;width:26px;flex-shrink:0}
+.fr.g{color:#b45309}.fn{flex:1;font-size:14px;font-weight:700}
+.fp{font-family:monospace;font-size:15px;font-weight:700;color:#2563eb}
+
+.loading{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:14px}
+.sp{width:28px;height:28px;border:3px solid #ddd;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.note{font-size:12px;color:#a8a29e;text-align:center;padding:8px}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="logoBtn">Carioca 🎴</h1>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span id="ruoloBadge">—</span>
+    <button class="bg bs" id="btnCambiaRuolo" onclick="cambiaRuolo()" style="font-size:11px;padding:4px 8px;display:none">Cambia ruolo</button>
+  </div>
+</header>
+<main>
+
+<!-- CARICAMENTO -->
+<div id="sLoad"><div class="loading"><div class="sp"></div><p style="color:#78716c">Connessione…</p></div></div>
+
+<!-- RUOLO -->
+<div id="sRuolo" class="hidden">
+  <section>
+    <div class="centro">
+      <div class="emoji-big">🎴</div>
+      <div class="c-title">Carioca</div>
+      <div class="c-sub">Scegli il tuo ruolo per continuare</div>
+      <div class="btn-row">
+        <button class="bp" onclick="mostraPin()">Sono l'arbitro</button>
+        <button class="bg" onclick="mostraOtp()">Sono un giocatore</button>
+      </div>
+      <div id="btnSblocca" style="margin-top:16px;display:none">
+        <button class="bg bs" onclick="sbloccaDispositivo()" style="font-size:12px;color:#dc2626;border-color:#fca5a5">
+          🔓 Sblocca dispositivo
+        </button>
+        <div style="font-size:11px;color:#a8a29e;margin-top:4px">Rimuove la sessione salvata su questo dispositivo</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- PIN ARBITRO -->
+<div id="sPin" class="hidden">
+  <section>
+    <div class="sec-title">Accesso arbitro</div>
+    <div class="centro">
+      <div class="emoji-big">🔐</div>
+      <div class="c-sub">Inserisci il codice di accesso a 6 caratteri</div>
+      <div class="digit-row" id="pinRow"></div>
+      <div class="err" id="pinErr"></div>
+      <div class="btn-row">
+        <button class="bp" onclick="checkPin()">Entra</button>
+        <button class="bg" onclick="showOnly('sRuolo')">Annulla</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ARBITRO: giochi anche tu? -->
+<div id="sArbGioca" class="hidden">
+  <section>
+    <div class="sec-title">Accesso arbitro</div>
+    <div class="centro">
+      <div class="emoji-big">🎮</div>
+      <div class="c-title">Giochi anche tu?</div>
+      <div class="c-sub">Seleziona il tuo nome se partecipi come giocatore, oppure entra solo come arbitro.</div>
+      <div class="nome-list" id="arbNomeList"></div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="bg" onclick="arbSoloArbitro()">Solo arbitro</button>
+        <button class="bd bs" onclick="arbResetPartita()">Reset partita</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- OTP GIOCATORE: inserimento password -->
+<div id="sOtp" class="hidden">
+  <section>
+    <div class="sec-title">Accesso giocatore</div>
+    <div class="centro">
+      <div class="emoji-big">🃏</div>
+      <div class="c-sub">Inserisci il codice partita a 8 cifre fornito dall'arbitro</div>
+      <div class="digit-row" id="otpRow"></div>
+      <div class="err" id="otpErr"></div>
+      <div class="btn-row">
+        <button class="bp" onclick="checkOtp()">Continua</button>
+        <button class="bg" onclick="showOnly('sRuolo')">Annulla</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- SCELTA NOME GIOCATORE -->
+<div id="sNome" class="hidden">
+  <section>
+    <div class="sec-title">Chi sei?</div>
+    <div class="centro">
+      <div class="emoji-big">👤</div>
+      <div class="c-sub">Seleziona il tuo nome dall'elenco</div>
+      <div class="nome-list" id="nomeList"></div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="bp" id="btnConfermaNome" onclick="confermaNome()" disabled>Siediti al tavolo</button>
+        <button class="bg" onclick="showOnly('sRuolo')">Annulla</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- SALA D'ATTESA GIOCATORE -->
+<div id="sAttesa" class="hidden">
+  <section>
+    <div class="centro">
+      <div class="emoji-big attesa-pulse">🚪</div>
+      <div class="c-title">Sala d'attesa</div>
+      <div class="c-sub">Hai preso posto in sala d'attesa.<br>L'arbitro ti autorizzerà a sederti al tavolo.</div>
+      <div class="attesa-info" id="attesaInfo">In attesa di autorizzazione…</div>
+    </div>
+  </section>
+</div>
+
+<!-- BENVENUTO AL TAVOLO -->
+<div id="sBenvenuto" class="hidden">
+  <section>
+    <div class="centro">
+      <div class="emoji-big">🎉</div>
+      <div class="c-title">Sei al tavolo!</div>
+      <div class="c-sub">L'arbitro ti ha autorizzato.<br>Benvenuto alla partita!</div>
+      <div class="tavolo-info" id="tavolo-info"></div>
+      <button class="bp" onclick="entraInPartita()">Vai alla partita →</button>
+    </div>
+  </section>
+</div>
+
+<!-- HOME -->
+<div id="sHome" class="hidden">
+  <section id="homeStato"></section>
+  <section id="homeGioc" class="hidden">
+    <div class="sec-title">Giocatori</div>
+    <div id="homeGiocList"></div>
+  </section>
+  <!-- Sala d'attesa (solo arbitro) -->
+  <section id="homeAttesa" class="hidden">
+    <div class="sec-title" id="homeAttesaTitle">In sala d'attesa</div>
+    <div id="homeAttesaList"></div>
+  </section>
+  <div style="display:flex;gap:8px;flex-wrap:wrap" id="homeBtns"></div>
+</div>
+
+<!-- SETUP -->
+<div id="sSetup" class="hidden">
+  <section>
+    <div class="var-row" id="varRow">
+      <div class="vbtn sel" data-v="normale" onclick="selVar(this)">Carioca normale</div>
+      <div class="vbtn" data-v="completa" onclick="selVar(this)">Carioca completa</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:7px 12px 5px;font-size:11px;color:#a8a29e;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #ddd">
+      <span>Giocatori — ordine di sequenza</span><span>1° mazziere</span>
+    </div>
+    <div id="plist"></div>
+    <div class="foot">
+      <span style="font-size:12px;color:#a8a29e">minimo 4</span>
+      <button class="bp" onclick="startGame()">Inizia partita</button>
+    </div>
+  </section>
+</div>
+
+<!-- GIOCO -->
+<div id="sGame" class="hidden">
+  <div class="otp-banner hidden" id="otpBanner">
+    <div>
+      <div style="font-size:11px;color:#b45309;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Codice partita — condividi con i giocatori</div>
+      <div class="otp-code" id="otpDisplay"></div>
+    </div>
+    <button class="bg bs" onclick="copiaOtp()">Copia</button>
+  </div>
+
+  <section>
+    <div class="mano-box">
+      <div class="mano-num" id="mCnt"></div>
+      <div class="mano-nome" id="mNome"></div>
+      <div class="mano-desc" id="mDesc"></div>
+    </div>
+    <div id="puntiSection" class="hidden">
+      <div id="puntiInputs"></div>
+      <button class="bp conf-btn" onclick="confermaPunti()">Conferma punteggi</button>
+    </div>
+    <div class="note hidden" id="spectNote">Clicca una riga per vedere la mano</div>
+  </section>
+
+  <section>
+    <div class="grid-container">
+      <table class="main-grid">
+        <thead><tr id="gHead"></tr></thead>
+        <tbody id="gBody"></tbody>
+      </table>
+    </div>
+    <div class="legenda">
+      <span>★ = ha chiuso</span>
+      <span style="color:#15803d;font-weight:600">verde = miglior totale</span>
+      <span style="color:#dc2626;font-weight:600">rosso = peggior totale</span>
+      <span>← clicca una mano</span>
+    </div>
+  </section>
+
+  <div style="display:flex;gap:8px">
+    <button class="bg" style="flex:1" onclick="showHome()">↩ Home</button>
+    <button class="bd bs" id="btnResetGame" style="display:none" onclick="arbResetPartita()">Reset partita</button>
+  </div>
+</div>
+
+<!-- FINALE -->
+<div id="sFinale" class="hidden">
+  <div style="font-size:18px;font-weight:700;padding:4px 0">Partita conclusa 🏆</div>
+  <section id="finaleCard"></section>
+  <button class="bg" style="width:100%;margin-top:8px" onclick="showHome()">↩ Home</button>
+</div>
+
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-database-compat.min.js"></script>
+<script>
+// ═══════════════════════
+// CONFIG
+// ═══════════════════════
+var PIN = '74GG73';
+firebase.initializeApp({databaseURL:'https://carioca-cq-default-rtdb.europe-west1.firebasedatabase.app'});
+var DB = firebase.database().ref('partita');
+
+var MANI = {
+  normale:[
+    {n:'Coppia figurata',d:'Una coppia di figure'},
+    {n:'Doppia coppia',d:'Coppia figurata + coppia normale'},
+    {n:'Tris',d:'Tre carte dello stesso valore'},
+    {n:'Full',d:'Tris + coppia'},
+    {n:'Poker',d:'Quattro carte dello stesso valore'},
+    {n:'Scala reale',d:'Cinque carte dello stesso seme in sequenza'},
+    {n:'Scala quaranta',d:'Scala da 40 punti'},
+    {n:'Bomba',d:'Scala reale + poker'},
+    {n:'Trik',d:'Coppia figurata + tris + scaletta a 3 carte'},
+    {n:'Chiusura in mano',d:'Chiudi senza scartare — solo carte non composte'},
+  ],
+  completa:[
+    {n:'Coppia figurata',d:'Una coppia di figure'},
+    {n:'Doppia coppia',d:'Coppia figurata + coppia normale'},
+    {n:'Doppia coppia fig.',d:'Due coppie di figure'},
+    {n:'Tris',d:'Tre carte dello stesso valore'},
+    {n:'Full',d:'Tris + coppia'},
+    {n:'Poker',d:'Quattro carte dello stesso valore'},
+    {n:'Doppio poker',d:'Due poker'},
+    {n:'Scala reale',d:'Cinque carte dello stesso seme in sequenza'},
+    {n:'Scala quaranta',d:'Scala da 40 punti'},
+    {n:'Bomba',d:'Scala reale + poker'},
+    {n:'Trik',d:'Coppia figurata + tris + scaletta a 3 carte'},
+    {n:'Chiusura in mano',d:'Chiudi senza scartare — solo carte non composte'},
+  ]
+};
+
+// ═══════════════════════
+// STATE
+// ═══════════════════════
+var GS = null;
+var ARB = false;
+var MD = {}, MANO_SEL = 0;
+var OTP_T = 0, OTP_MAX = 4;
+var NOME_GIOCATORE = null; // nome scelto dal giocatore
+var ALL_SCREENS = ['sLoad','sRuolo','sPin','sArbGioca','sOtp','sNome','sAttesa','sBenvenuto','sHome','sSetup','sGame','sFinale'];
+
+function fa(x, len) {
+  if(!x) return new Array(len).fill(null);
+  if(Array.isArray(x)) return x;
+  var a=[];
+  for(var i=0;i<len;i++) a.push(x[i]!==undefined?x[i]:null);
+  return a;
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showOnly(id){
+  ALL_SCREENS.forEach(function(s){
+    var el=document.getElementById(s);
+    if(el){if(s===id)el.classList.remove('hidden');else el.classList.add('hidden');}
+  });
+}
+function showHome(){showOnly('sHome');renderHome();}
+document.getElementById('logoBtn').onclick=function(){if(GS||ARB)showHome();};
+
+// ═══════════════════════
+// BADGE
+// ═══════════════════════
+function updateBadge(){
+  var b=document.getElementById('ruoloBadge');
+  if(ARB && NOME_GIOCATORE){
+    // arbitro che gioca: mostra pill arbitro + nome con colore giocatore
+    var idx=0;
+    if(GS&&GS.players){
+      var pl2=fa(GS.players,100).filter(function(p){return p!==null;});
+      idx=pl2.indexOf(NOME_GIOCATORE); if(idx<0)idx=0;
+    }
+    var c2=PILL_COLORS[idx%PILL_COLORS.length];
+    b.className='arb';
+    b.textContent='arbitro · '+NOME_GIOCATORE;
+    b.style.background='';b.style.color='';b.style.borderColor='';
+    // usa colore misto: sfondo arbitro verde, testo con nome
+    b.style.background='linear-gradient(90deg,#dcfce7 60%,'+c2.bg+' 100%)';
+    b.style.color='#15803d';b.style.borderColor='#86efac';
+  } else if(ARB){
+    b.textContent='arbitro';b.className='arb';b.style.background='';b.style.color='';b.style.borderColor='';
+  } else if(NOME_GIOCATORE){
+    // trova indice del giocatore per il colore
+    var idx=0;
+    if(GS&&GS.players){
+      var pl=fa(GS.players,100).filter(function(p){return p!==null;});
+      idx=pl.indexOf(NOME_GIOCATORE); if(idx<0)idx=0;
+    }
+    var c=PILL_COLORS[idx%PILL_COLORS.length];
+    b.textContent=NOME_GIOCATORE; b.className='';
+    b.style.background=c.bg; b.style.color=c.tx; b.style.borderColor=c.tx;
+  } else {
+    b.textContent='—';b.className='';b.style.background='';b.style.color='';b.style.borderColor='';
+  }
+  document.getElementById('btnCambiaRuolo').style.display=(ARB||NOME_GIOCATORE)?'':'none';
+}
+
+function cambiaRuolo(){
+  ARB=false; NOME_GIOCATORE=null; MD={}; MANO_SEL=0;
+  localStorage.removeItem('cr');
+  localStorage.removeItem('otp_pid');
+  localStorage.removeItem('otp_t');
+  localStorage.removeItem('otp_blk');
+  localStorage.removeItem('nome_g');
+  // NON rimuove pin_blk — il blocco PIN persiste anche cambiando ruolo
+  OTP_T=0;
+  updateBadge();
+  showOnly('sRuolo');
+}
+
+// ═══════════════════════
+// BOOT
+// ═══════════════════════
+(function boot(){
+  var cr  = localStorage.getItem('cr');
+  var blk = localStorage.getItem('otp_blk');
+  // mostra pulsante sblocca se c'è qualcosa salvato nel localStorage
+  var hasSessione = cr || localStorage.getItem('otp_pid') || localStorage.getItem('pin_blk') || blk;
+  if(hasSessione){
+    var bs=document.getElementById('btnSblocca');
+    if(bs) bs.style.display='';
+  }
+
+  if(cr==='1'){
+    ARB=true;
+    var nomeArb=localStorage.getItem('nome_g');
+    if(nomeArb) NOME_GIOCATORE=nomeArb;
+    updateBadge(); startListen();
+  } else if(cr==='0' && !blk){
+    // era giocatore — verifica se la partita è ancora la stessa
+    showOnly('sLoad');
+    firebase.database().ref('partita').once('value',function(snap){
+      var dati=snap.val();
+      var otpOra=dati?dati.otp:null;
+      var otpSalvata=localStorage.getItem('otp_pid');
+      var nomeSalvato=localStorage.getItem('nome_g');
+      if(otpOra && otpOra===otpSalvata && nomeSalvato){
+        NOME_GIOCATORE=nomeSalvato; updateBadge();
+        // controlla se è già autorizzato
+        var autorizzato=dati.autorizzati && dati.autorizzati[nomeSalvato]===true;
+        if(autorizzato){
+          startListen(); // va in partita
+        } else {
+          // rimette in sala d'attesa e riascolta autorizzazione
+          GS=dati;
+          startListen();
+          mostraSalaAttesa();
+        }
+      } else {
+        localStorage.removeItem('cr');
+        localStorage.removeItem('otp_pid');
+        localStorage.removeItem('nome_g');
+        showOnly('sRuolo');
+      }
+    });
+  } else {
+    showOnly('sRuolo');
+  }
+})();
+
+// ═══════════════════════
+// PIN ARBITRO
+// ═══════════════════════
+var PIN_TENTATIVI = 0;
+var PIN_MAX = 4;
+var EMAIL_RECUPERO = 'lucacq@me.com';
+
+function mostraPin(){
+  // controlla blocco
+  var blkTs = localStorage.getItem('pin_blk');
+  if(blkTs){
+    showOnly('sPin');
+    var err = document.getElementById('pinErr');
+    err.innerHTML='Accesso bloccato.<br><a href="#" onclick="inviaRecuperoPin()" style="color:#2563eb;font-weight:600">Invia codice di recupero →</a>';
+    document.getElementById('pinRow').innerHTML='';
+    return;
+  }
+
+  showOnly('sPin');
+  PIN_TENTATIVI = parseInt(localStorage.getItem('pin_t')||'0');
+
+  var row = document.getElementById('pinRow');
+  row.innerHTML='';
+
+  // wrapper input + occhio
+  var wrap = document.createElement('div');
+  wrap.style.cssText='display:flex;align-items:center;gap:8px';
+
+  var inp = document.createElement('input');
+  inp.type='password'; inp.id='pd0'; inp.maxLength=6;
+  inp.autocomplete='off'; inp.spellcheck=false;
+  inp.style.cssText='width:150px;height:52px;font-size:22px;font-weight:700;text-align:center;'+
+    'border:2px solid #ddd;border-radius:8px;background:#fff;color:#1a1917;outline:none;'+
+    'letter-spacing:.3em;font-family:monospace;text-transform:uppercase';
+  inp.addEventListener('input',function(){
+    // forza maiuscolo (non visibile nel campo password ma usato al submit)
+    inp.setAttribute('data-val', inp.value.toUpperCase().replace(/[^A-Z0-9]/g,''));
+  });
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter') checkPin();
+  });
+
+  // pulsante occhio
+  var eye = document.createElement('button');
+  eye.type='button';
+  eye.innerHTML='👁';
+  eye.style.cssText='background:none;border:1px solid #ddd;border-radius:8px;padding:6px 10px;font-size:18px;cursor:pointer;height:52px';
+  eye.title='Mostra/nascondi';
+  var visible=false;
+  eye.addEventListener('click',function(){
+    visible=!visible;
+    inp.type=visible?'text':'password';
+    if(visible) inp.value=inp.getAttribute('data-val')||inp.value;
+    eye.innerHTML=visible?'🙈':'👁';
+  });
+
+  wrap.appendChild(inp);
+  wrap.appendChild(eye);
+  row.appendChild(wrap);
+
+  var err=document.getElementById('pinErr');
+  err.textContent='';
+  if(PIN_TENTATIVI>0){
+    err.textContent='Tentativi rimanenti: '+(PIN_MAX-PIN_TENTATIVI);
+  }
+
+  setTimeout(function(){inp.focus();},100);
+}
+
+function checkPin(){
+  var blkTs=localStorage.getItem('pin_blk');
+  if(blkTs){
+    document.getElementById('pinErr').innerHTML='Accesso bloccato. <a href="#" onclick="inviaRecuperoPin()" style="color:#2563eb">Recupera accesso</a>';
+    return;
+  }
+  var inp=document.getElementById('pd0');
+  if(!inp) return;
+  // legge il valore pulito (maiuscolo, solo A-Z0-9)
+  var raw=inp.type==='text'?inp.value:inp.value;
+  var p=raw.toUpperCase().replace(/[^A-Z0-9]/g,'');
+
+  if(p===PIN){
+    localStorage.removeItem('pin_t');
+    PIN_TENTATIVI=0;
+    ARB=true; localStorage.setItem('cr','1'); updateBadge();
+    // controlla se c'è una partita in corso — se sì chiede se gioca anche lui
+    firebase.database().ref('partita/players').once('value', function(snap){
+      var pl=snap.val();
+      if(pl){
+        var players=fa(pl,100).filter(function(p){return p!==null;});
+        if(players.length>0){ mostraArbGioca(players); return; }
+      }
+      startListen();
+    });
+  } else {
+    PIN_TENTATIVI++;
+    localStorage.setItem('pin_t',PIN_TENTATIVI);
+    var rim=PIN_MAX-PIN_TENTATIVI;
+    if(rim<=0){
+      localStorage.setItem('pin_blk','1');
+      document.getElementById('pinErr').innerHTML=
+        'Accesso bloccato dopo '+PIN_MAX+' tentativi.<br>'+
+        '<a href="#" onclick="inviaRecuperoPin()" style="color:#2563eb;font-weight:600">Invia codice di recupero a '+EMAIL_RECUPERO+' →</a>';
+      document.getElementById('pd0').disabled=true;
+    } else {
+      document.getElementById('pinErr').textContent='Codice errato. Tentativi rimanenti: '+rim;
+      inp.value=''; inp.setAttribute('data-val',''); inp.focus();
+    }
+  }
+}
+
+function mostraArbGioca(players){
+  showOnly('sArbGioca');
+  var list=document.getElementById('arbNomeList');
+  list.innerHTML='';
+  players.forEach(function(p){
+    var btn=document.createElement('button');
+    btn.className='nome-btn'; btn.textContent=p;
+    btn.onclick=function(){
+      NOME_GIOCATORE=p;
+      localStorage.setItem('nome_g',p);
+      updateBadge();
+      startListen();
+    };
+    list.appendChild(btn);
+  });
+}
+
+function arbSoloArbitro(){
+  NOME_GIOCATORE=null;
+  localStorage.removeItem('nome_g');
+  updateBadge();
+  startListen();
+}
+
+function sbloccaDispositivo(){
+  if(confirm('Rimuovere la sessione salvata su questo dispositivo?\nDovrai scegliere di nuovo il ruolo.')){
+    localStorage.removeItem('cr');
+    localStorage.removeItem('otp_pid');
+    localStorage.removeItem('otp_t');
+    localStorage.removeItem('otp_blk');
+    localStorage.removeItem('nome_g');
+    localStorage.removeItem('pin_t');
+    localStorage.removeItem('pin_blk');
+    NOME_GIOCATORE=null; ARB=false;
+    updateBadge();
+    location.reload();
+  }
+}
+
+function arbResetPartita(){
+  if(confirm('Resettare la partita in corso? Tutti i punteggi andranno persi.')){
+    NOME_GIOCATORE=null;
+    localStorage.removeItem('nome_g');
+    updateBadge();
+    DB.remove();
+    showOnly('sSetup');
+    initSetup();
+  }
+}
+
+function inviaRecuperoPin(){
+  // apre il client email con istruzioni di recupero
+  var sogg=encodeURIComponent('Carioca — Recupero accesso arbitro');
+  var corpo=encodeURIComponent(
+    'Ciao,\n\nè stato richiesto il recupero dell\'accesso arbitro all\'app Carioca.\n\n'+
+    'Per sbloccare, apri l\'app e segui questi passi:\n'+
+    '1. Apri la console del browser (F12 → Console)\n'+
+    '2. Incolla questo comando e premi Invio:\n\n'+
+    '   localStorage.removeItem(\'pin_blk\'); localStorage.removeItem(\'pin_t\'); location.reload();\n\n'+
+    'Oppure cancella i dati del sito nelle impostazioni del browser.\n\nCarioca App'
+  );
+  window.location.href='mailto:'+EMAIL_RECUPERO+'?subject='+sogg+'&body='+corpo;
+  document.getElementById('pinErr').innerHTML='Email aperta. Segui le istruzioni che riceverai.<br><small style="color:#a8a29e">In alternativa: cancella i dati del sito nelle impostazioni del browser.</small>';
+}
+
+// ═══════════════════════
+// OTP GIOCATORE
+// ═══════════════════════
+function mostraOtp(){
+  if(localStorage.getItem('otp_blk')==='1'){
+    alert('Accesso bloccato dopo troppi tentativi errati.\nChiedi all\'arbitro di avviare una nuova partita per ottenere un nuovo codice.');
+    return;
+  }
+  showOnly('sOtp');
+  buildDigits('otpRow','ot',8);
+  document.getElementById('otpErr').textContent='';
+  OTP_T=parseInt(localStorage.getItem('otp_t')||'0');
+  if(OTP_T>0) document.getElementById('otpErr').textContent='Tentativi rimanenti: '+(OTP_MAX-OTP_T);
+  setTimeout(function(){document.getElementById('ot0').focus();},100);
+}
+
+function checkOtp(){
+  var inserita=getDigits('ot',8);
+  if(inserita.length<8){document.getElementById('otpErr').textContent='Inserisci tutte le 8 cifre.';return;}
+
+  // legge OTP da Firebase al momento del click
+  firebase.database().ref('partita/otp').once('value',function(snap){
+    var otpOra=snap.val();
+    if(!otpOra){
+      document.getElementById('otpErr').textContent='Nessuna partita in corso. Attendi che l\'arbitro avvii la partita e ti fornisca il codice.';
+      return;
+    }
+    if(inserita===String(otpOra)){
+      // OTP corretta — mostra scelta nome
+      localStorage.setItem('otp_pid',String(otpOra));
+      localStorage.removeItem('otp_t');
+      localStorage.removeItem('otp_blk');
+      OTP_T=0;
+      mostraNome();
+    } else {
+      OTP_T++;
+      localStorage.setItem('otp_t',OTP_T);
+      var rim=OTP_MAX-OTP_T;
+      if(rim<=0){
+        localStorage.setItem('otp_blk','1');
+        document.getElementById('otpErr').textContent='Accesso bloccato — troppi tentativi errati. Chiedi un nuovo codice all\'arbitro.';
+        setTimeout(function(){showOnly('sRuolo');},2000);
+      } else {
+        document.getElementById('otpErr').textContent='Codice errato. Tentativi rimanenti: '+rim;
+        clearDigits('ot',8); document.getElementById('ot0').focus();
+      }
+    }
+  });
+}
+
+// ═══════════════════════
+// SCELTA NOME
+// ═══════════════════════
+var NOME_SCELTO = null;
+function mostraNome(){
+  firebase.database().ref('partita').once('value',function(snap){
+    var dati=snap.val();
+    if(!dati||!dati.players){
+      document.getElementById('otpErr').textContent='Errore nel caricare i giocatori.';
+      return;
+    }
+    var players=fa(dati.players,100).filter(function(p){return p!==null;});
+    showOnly('sNome');
+    NOME_SCELTO=null;
+    document.getElementById('btnConfermaNome').disabled=true;
+    var list=document.getElementById('nomeList');
+    list.innerHTML='';
+    players.forEach(function(p){
+      var btn=document.createElement('button');
+      btn.className='nome-btn'; btn.textContent=p;
+      btn.onclick=function(){
+        document.querySelectorAll('.nome-btn').forEach(function(b){b.classList.remove('sel');});
+        btn.classList.add('sel');
+        NOME_SCELTO=p;
+        document.getElementById('btnConfermaNome').disabled=false;
+      };
+      list.appendChild(btn);
+    });
+  });
+}
+
+function confermaNome(){
+  if(!NOME_SCELTO) return;
+  NOME_GIOCATORE=NOME_SCELTO;
+  localStorage.setItem('cr','0');
+  localStorage.setItem('nome_g',NOME_GIOCATORE);
+  updateBadge();
+  // mette il giocatore in sala d'attesa su Firebase
+  firebase.database().ref('partita/attesa/'+NOME_GIOCATORE).set({nome:NOME_GIOCATORE,ts:Date.now()});
+  mostraSalaAttesa();
+}
+
+// ═══════════════════════
+// SALA D'ATTESA
+// ═══════════════════════
+function mostraSalaAttesa(){
+  showOnly('sAttesa');
+  document.getElementById('attesaInfo').textContent='Ciao '+NOME_GIOCATORE+'! Hai inserito il codice corretto. Attendi che l\'arbitro ti autorizzi a sederti al tavolo.';
+  // ascolta autorizzazione
+  firebase.database().ref('partita/autorizzati/'+NOME_GIOCATORE).on('value',function(snap){
+    if(snap.val()===true){
+      firebase.database().ref('partita/autorizzati/'+NOME_GIOCATORE).off();
+      mostraBenvenuto();
+    }
+  });
+}
+
+function mostraBenvenuto(){
+  firebase.database().ref('partita').once('value',function(snap){
+    var dati=snap.val(); if(!dati) return;
+    var players=fa(dati.players,100).filter(function(p){return p!==null;});
+    showOnly('sBenvenuto');
+    document.getElementById('tavolo-info').innerHTML=
+      '<strong>Giocatori al tavolo:</strong><br>'+
+      players.map(function(p,i){return (i+1)+'. '+esc(p);}).join('<br>')+
+      '<br><br><strong>1° mazziere:</strong> '+esc(dati.mazziere);
+  });
+}
+
+function entraInPartita(){
+  startListen();
+}
+
+// ═══════════════════════
+// FIREBASE
+// ═══════════════════════
+var listening=false;
+function startListen(){
+  if(listening){route();return;}
+  listening=true;
+  showOnly('sLoad');
+  DB.on('value',function(snap){
+    GS=snap.val();
+
+    // logout forzato giocatore se la OTP è cambiata (nuova partita)
+    if(!ARB && NOME_GIOCATORE){
+      var otpSalvata=localStorage.getItem('otp_pid');
+      var otpOra=GS?GS.otp:null;
+      if(otpOra && otpSalvata && otpOra!==otpSalvata){
+        // nuova partita — forza logout
+        NOME_GIOCATORE=null;
+        localStorage.removeItem('cr');
+        localStorage.removeItem('otp_pid');
+        localStorage.removeItem('nome_g');
+        localStorage.removeItem('otp_t');
+        localStorage.removeItem('otp_blk');
+        updateBadge();
+        showOnly('sRuolo');
+        return;
+      }
+      // se non c'è più partita
+      if(!GS){
+        NOME_GIOCATORE=null;
+        localStorage.removeItem('cr');
+        localStorage.removeItem('otp_pid');
+        localStorage.removeItem('nome_g');
+        updateBadge();
+        showOnly('sRuolo');
+        return;
+      }
+    }
+
+    var cur=document.querySelector('main > div:not(.hidden)');
+    var curId=cur?cur.id:'';
+
+    // schermata benvenuto: non interrompere mai
+    if(curId==='sBenvenuto') return;
+
+    // sala d'attesa: controlla se nel frattempo è stato autorizzato
+    if(curId==='sAttesa'){
+      if(GS && NOME_GIOCATORE && GS.autorizzati && GS.autorizzati[NOME_GIOCATORE]===true){
+        mostraBenvenuto();
+      }
+      // altrimenti rimane in attesa
+      return;
+    }
+
+    if(curId==='sGame'){renderGame();return;}
+    if(curId==='sFinale'){renderFinale();return;}
+    if(curId==='sHome'){renderHome();return;}
+
+    // schermate di setup/pin/ruolo/load: usa route per decidere
+    // ma solo se il giocatore è già identificato
+    if(curId==='sRuolo'||curId==='sPin'||curId==='sOtp'||curId==='sNome'||curId==='sArbGioca') return;
+
+    route();
+  });
+}
+
+function route(){
+  if(!GS){
+    if(ARB){showOnly('sSetup');initSetup();}
+    else{showOnly('sLoad');document.querySelector('#sLoad p').textContent='In attesa che l\'arbitro avvii la partita…';}
+    return;
+  }
+  if(GS.fase==='fine'){
+    showOnly('sFinale');renderFinale();
+    return;
+  }
+  // partita in corso
+  if(ARB){
+    showOnly('sGame');renderGame();
+    return;
+  }
+  // giocatore: verifica se è autorizzato
+  if(!NOME_GIOCATORE){
+    // non ha ancora scelto il nome — rimane in attesa
+    showOnly('sLoad');
+    document.querySelector('#sLoad p').textContent='In attesa di autorizzazione…';
+    return;
+  }
+  var autorizzato = GS.autorizzati && GS.autorizzati[NOME_GIOCATORE]===true;
+  if(autorizzato){
+    showOnly('sGame');renderGame();
+  } else {
+    // non ancora autorizzato — torna in sala d'attesa
+    mostraSalaAttesa();
+  }
+}
+
+// ═══════════════════════
+// HOME
+// ═══════════════════════
+function renderHome(){
+  var statoEl=document.getElementById('homeStato');
+  var giocEl=document.getElementById('homeGioc');
+  var listEl=document.getElementById('homeGiocList');
+  var attesaEl=document.getElementById('homeAttesa');
+  var attesaList=document.getElementById('homeAttesaList');
+  var attesaTitle=document.getElementById('homeAttesaTitle');
+  var btnsEl=document.getElementById('homeBtns');
+
+  if(!GS){
+    statoEl.innerHTML='<div class="sec-title">Stato partita</div><div class="home-row"><div class="home-label" style="color:#a8a29e">Nessuna partita in corso</div></div>';
+    giocEl.classList.add('hidden');attesaEl.classList.add('hidden');
+    btnsEl.innerHTML=ARB?'<button class="bp" onclick="showOnly(\'sSetup\');initSetup()">+ Nuova partita</button>':'';
+    return;
+  }
+
+  var players=fa(GS.players,100).filter(function(p){return p!==null;});
+  var maniN=fa(GS.maniN,100).filter(function(m){return m!==null;});
+  var mSel=(GS.manoSel!==undefined&&GS.manoSel!==null)?GS.manoSel:0;
+  var stato=GS.fase==='fine'?'Conclusa':'Mano selezionata: '+(mSel+1)+' · '+maniN[mSel];
+
+  statoEl.innerHTML='<div class="sec-title">Stato partita</div>'+
+    '<div class="home-row"><div class="home-label">Variante</div><div class="home-val">'+(GS.variante==='completa'?'Carioca completa':'Carioca normale')+'</div></div>'+
+    '<div class="home-row"><div class="home-label">1° mazziere</div><div class="home-val">'+esc(GS.mazziere)+'</div></div>'+
+    '<div class="home-row"><div class="home-label">Situazione</div><div class="home-val">'+esc(stato)+'</div></div>';
+
+  // giocatori
+  giocEl.classList.remove('hidden'); listEl.innerHTML='';
+  players.forEach(function(p,idx){
+    var row=document.createElement('div');row.className='home-row';
+    var lbl=document.createElement('div');lbl.className='home-label';lbl.textContent=(idx+1)+'. '+p;
+    row.appendChild(lbl);
+    if(ARB){
+      var btn=document.createElement('button');btn.className='bg bs';btn.textContent='Rinomina';
+      btn.onclick=function(){
+        var inp=document.createElement('input');inp.className='edit-inp';inp.value=p;inp.type='text';
+        var save=document.createElement('button');save.className='bp bs';save.textContent='Salva';
+        save.onclick=function(){
+          var n=inp.value.trim();if(!n||n===p){renderHome();return;}
+          var np=fa(GS.players,100).filter(function(x){return x!==null;});
+          np[idx]=n;
+          // costruiamo i nuovi scores e stars copiando i dati del vecchio nome nel nuovo
+          var ns={},nst={};
+          fa(GS.players,100).filter(function(x){return x!==null;}).forEach(function(pl,i){
+            var nuovaChiave = (i===idx) ? n : pl;
+            // copia tutti i valori (Firebase li salva come oggetti con chiavi numeriche)
+            ns[nuovaChiave]  = GS.scores ? (GS.scores[pl] || {}) : {};
+            nst[nuovaChiave] = GS.stars  ? (GS.stars[pl]  || {}) : {};
+          });
+          // usa set separati per evitare conflitti
+          DB.child('players').set(np);
+          DB.child('scores').set(ns);
+          DB.child('stars').set(nst);
+        };
+        inp.onkeydown=function(e){if(e.key==='Enter')save.onclick();};
+        row.innerHTML='';row.appendChild(inp);row.appendChild(save);
+        setTimeout(function(){inp.focus();},50);
+      };
+      row.appendChild(btn);
+    }
+    listEl.appendChild(row);
+  });
+
+  // sala d'attesa (solo arbitro)
+  if(ARB && GS.attesa){
+    var inAttesa=Object.keys(GS.attesa).filter(function(k){
+      return !GS.autorizzati||!GS.autorizzati[k];
+    });
+    if(inAttesa.length>0){
+      attesaEl.classList.remove('hidden');
+      attesaTitle.textContent='🚪 In sala d\'attesa ('+inAttesa.length+')';
+      attesaList.innerHTML='';
+      inAttesa.forEach(function(nome){
+        var row=document.createElement('div');row.className='attesa-row';
+        var nm=document.createElement('div');nm.className='attesa-nome';nm.textContent=nome;
+        var btn=document.createElement('button');btn.className='bp bs';btn.textContent='Autorizza ✓';
+        btn.onclick=function(){
+          firebase.database().ref('partita/autorizzati/'+nome).set(true);
+        };
+        row.appendChild(nm);row.appendChild(btn);
+        attesaList.appendChild(row);
+      });
+    } else {
+      attesaEl.classList.add('hidden');
+    }
+  } else {
+    attesaEl.classList.add('hidden');
+  }
+
+  btnsEl.innerHTML='';
+  var bv=document.createElement('button');bv.className='bp';bv.textContent='Vai alla partita →';
+  bv.onclick=function(){GS.fase==='fine'?(showOnly('sFinale'),renderFinale()):(showOnly('sGame'),renderGame());};
+  btnsEl.appendChild(bv);
+  if(ARB){
+    var bn=document.createElement('button');bn.className='bg';bn.textContent='+ Nuova partita';
+    bn.onclick=function(){if(confirm('Nuova partita?')){DB.remove();showOnly('sSetup');initSetup();}};
+    btnsEl.appendChild(bn);
+  }
+}
+
+// ═══════════════════════
+// SETUP
+// ═══════════════════════
+function selVar(el){document.querySelectorAll('.vbtn').forEach(function(b){b.classList.remove('sel');});el.classList.add('sel');}
+function initSetup(){
+  var list=document.getElementById('plist');list.innerHTML='';
+  for(var i=1;i<=6;i++){
+    var wrap=document.createElement('div');wrap.className='prow';
+    var num=document.createElement('span');num.className='pnum';num.textContent=i;
+    var inp=document.createElement('input');inp.type='text';inp.id='p'+i;
+    inp.placeholder=i>4?'opzionale':'Giocatore '+i;inp.autocomplete='off';
+    var mw=document.createElement('div');mw.style.cssText='display:flex;align-items:center;gap:5px;flex-shrink:0';
+    var r=document.createElement('input');r.type='radio';r.name='maz';r.value=i;r.id='maz'+i;if(i===1)r.checked=true;
+    var lb=document.createElement('label');lb.htmlFor='maz'+i;lb.style.cssText='font-size:11px;color:#57534e';lb.textContent='mazziere';
+    mw.appendChild(r);mw.appendChild(lb);
+    wrap.appendChild(num);wrap.appendChild(inp);wrap.appendChild(mw);list.appendChild(wrap);
+  }
+}
+
+function startGame(){
+  var variante=document.querySelector('.vbtn.sel').dataset.v;
+  var players=[];
+  for(var i=1;i<=6;i++){var v=(document.getElementById('p'+i).value||'').trim();if(v)players.push(v);}
+  if(players.length<4){alert('Inserisci almeno 4 giocatori.');return;}
+  var mazEl=document.querySelector('input[name="maz"]:checked');
+  var mazIdx=mazEl?parseInt(mazEl.value)-1:0;
+  var mazziere=players[Math.min(mazIdx,players.length-1)];
+  var mani=MANI[variante];var nM=mani.length;
+  var scores={},stars={};
+  players.forEach(function(p){scores[p]={};stars[p]={};for(var i=0;i<nM;i++){scores[p][i]=null;stars[p][i]=false;}});
+  MANO_SEL=0;MD={};
+  var otp=generaOtp();
+  DB.set({variante:variante,players:players,mazziere:mazziere,
+    maniN:mani.map(function(m){return m.n;}),
+    maniD:mani.map(function(m){return m.d;}),
+    scores:scores,stars:stars,fase:'gioco',otp:otp,
+    manoSel:0,attesa:{},autorizzati:{}});
+}
+
+// ═══════════════════════
+// GAME
+// ═══════════════════════
+function renderGame(){
+  if(!GS)return;
+  var players=fa(GS.players,100).filter(function(p){return p!==null;});
+  var maniN=fa(GS.maniN,100).filter(function(m){return m!==null;});
+  var maniD=fa(GS.maniD,100).filter(function(m){return m!==null;});
+  var nM=maniN.length;
+  // legge mano selezionata da Firebase (sincronizzata su tutti i dispositivi)
+  MANO_SEL = (GS.manoSel !== undefined && GS.manoSel !== null) ? GS.manoSel : 0;
+  if(MANO_SEL>=nM) MANO_SEL=0;
+
+  document.getElementById('mCnt').textContent='Mano '+(MANO_SEL+1)+' di '+nM;
+  document.getElementById('mNome').textContent=maniN[MANO_SEL]||'';
+  document.getElementById('mDesc').textContent=maniD[MANO_SEL]||'';
+
+  var ps=document.getElementById('puntiSection');
+  var sn=document.getElementById('spectNote');
+  var ob=document.getElementById('otpBanner');
+  if(ARB){
+    ps.classList.remove('hidden');sn.classList.add('hidden');
+    renderPuntiInputs(players,maniN,nM);
+    if(GS.otp){ob.classList.remove('hidden');document.getElementById('otpDisplay').textContent=GS.otp;}
+    var br=document.getElementById('btnResetGame');
+    if(br) br.style.display='';
+  } else {
+    ps.classList.add('hidden');sn.classList.remove('hidden');ob.classList.add('hidden');
+    var br=document.getElementById('btnResetGame');
+    if(br) br.style.display='none';
+  }
+  renderGrid(players,maniN,nM);
+}
+
+function selezionaMano(idx){
+  if(!ARB) return; // solo l'arbitro può cambiare la mano
+  MD={_mano:-1};
+  // salva su Firebase — tutti i dispositivi si aggiornano via listener
+  DB.child('manoSel').set(idx);
+}
+
+function renderPuntiInputs(players,maniN,nM){
+  var cont=document.getElementById('puntiInputs');cont.innerHTML='';
+  if(MD._mano!==MANO_SEL){
+    MD={_mano:MANO_SEL};
+    players.forEach(function(p){
+      var sc=fa(GS.scores&&GS.scores[p],nM);
+      var st=fa(GS.stars&&GS.stars[p],nM);
+      MD[p]={punti:sc[MANO_SEL]!==null?Number(sc[MANO_SEL]):null,star:st[MANO_SEL]||false};
+    });
+  }
+  players.forEach(function(p,pidx){
+    var row=document.createElement('div');row.className='p-input-row';
+    var nm=document.createElement('div');nm.className='p-input-name';
+    nm.innerHTML=pillHtml(p,pidx);
+    var sb=document.createElement('button');
+    sb.className='star-toggle'+(MD[p].star?' on':'');sb.type='button';sb.textContent='★';sb.title='ha chiuso';
+    sb.onclick=function(){
+      if(!MD[p].star)players.forEach(function(q){MD[q].star=false;});
+      MD[p].star=!MD[p].star;
+      if(MD[p].star)MD[p].punti=0;
+      renderPuntiInputs(players,maniN,nM);
+    };
+    var nw=document.createElement('div');nw.className='num-wrap';
+    var bm=document.createElement('button');bm.className='nbtn';bm.type='button';bm.textContent='−';
+    var iv=document.createElement('input');
+    iv.className='nval';iv.type='number';iv.min='0';iv.inputMode='numeric';
+    iv.value=MD[p].punti!==null?MD[p].punti:'';iv.placeholder='0';iv.disabled=MD[p].star;
+    var bp=document.createElement('button');bp.className='nbtn';bp.type='button';bp.textContent='+';
+    bm.onclick=function(){if(MD[p].star)return;MD[p].punti=Math.max(0,(MD[p].punti||0)-5);iv.value=MD[p].punti;};
+    bp.onclick=function(){if(MD[p].star)return;MD[p].punti=(MD[p].punti||0)+5;iv.value=MD[p].punti;};
+    iv.oninput=function(){MD[p].punti=iv.value===''?null:(parseInt(iv.value)||0);};
+    nw.appendChild(bm);nw.appendChild(iv);nw.appendChild(bp);
+    row.appendChild(nm);row.appendChild(sb);row.appendChild(nw);
+    cont.appendChild(row);
+  });
+}
+
+function confermaPunti(){
+  if(!GS||!ARB)return;
+  var players=fa(GS.players,100).filter(function(p){return p!==null;});
+  var maniN=fa(GS.maniN,100).filter(function(m){return m!==null;});
+  var nM=maniN.length;
+  var updates={};
+  players.forEach(function(p){
+    var punti=MD[p]&&MD[p].star?0:(MD[p]&&MD[p].punti!==null?MD[p].punti:null);
+    var star=MD[p]?MD[p].star||false:false;
+    updates['scores/'+p+'/'+MANO_SEL]=punti;
+    updates['stars/'+p+'/'+MANO_SEL]=star;
+  });
+  // controlla se tutte le mani sono complete
+  var scoreTmp={};
+  players.forEach(function(p){
+    scoreTmp[p]=fa(GS.scores&&GS.scores[p],nM).slice();
+    scoreTmp[p][MANO_SEL]=MD[p]&&MD[p].star?0:(MD[p]&&MD[p].punti!==null?MD[p].punti:null);
+  });
+  var tutteComplete=true;
+  outer:for(var i=0;i<nM;i++){
+    for(var j=0;j<players.length;j++){
+      if(scoreTmp[players[j]][i]===null){tutteComplete=false;break outer;}
+    }
+  }
+  if(tutteComplete)updates['fase']='fine';
+  MD={_mano:-1};
+  DB.update(updates);
+}
+
+function renderGrid(players,maniN,nM){
+  var tot={};
+  players.forEach(function(p){
+    var arr=fa(GS.scores&&GS.scores[p],nM);
+    tot[p]=arr.reduce(function(s,v){return s+(v!==null?Number(v):0);},0);
+  });
+  var vals=players.map(function(p){return tot[p];});
+  var minT=Math.min.apply(null,vals),maxT=Math.max.apply(null,vals),allSame=minT===maxT;
+
+  document.getElementById('gHead').innerHTML='<th class="col-mano">Mano</th>'+
+    players.map(function(p,idx){
+      var c=!allSame&&players.length>1?(tot[p]===minT?'best':tot[p]===maxT?'worst':''):'';
+      return '<th>'+pillHtml(p,idx)+'<span class="p-tot '+c+'">'+tot[p]+'</span></th>';
+    }).join('');
+
+  document.getElementById('gBody').innerHTML=maniN.map(function(nome,i){
+    var rc=i===MANO_SEL?'row-active':'';
+    var cells=players.map(function(p){
+      var sa=fa(GS.scores&&GS.scores[p],nM);
+      var sta=fa(GS.stars&&GS.stars[p],nM);
+      var v=sa[i],st=sta[i];
+      if(st) return '<td class="cell-star">★</td>';
+      if(v!==null) return '<td class="'+(i===MANO_SEL?'cell-cur':'')+'">'+v+'</td>';
+      return '<td></td>';
+    }).join('');
+    return '<tr class="'+rc+'" onclick="selezionaMano('+i+')">'+
+      '<td class="col-mano">'+(i+1)+' · '+esc(nome)+'</td>'+cells+'</tr>';
+  }).join('');
+}
+
+// ═══════════════════════
+// FINALE
+// ═══════════════════════
+function renderFinale(){
+  if(!GS)return;
+  var players=fa(GS.players,100).filter(function(p){return p!==null;});
+  var maniN=fa(GS.maniN,100).filter(function(m){return m!==null;});
+  var nM=maniN.length;
+  var rank=players.map(function(p){
+    return {name:p,tot:fa(GS.scores&&GS.scores[p],nM).reduce(function(s,v){return s+(v!==null?Number(v):0);},0)};
+  }).sort(function(a,b){return a.tot-b.tot;});
+  document.getElementById('finaleCard').innerHTML=rank.map(function(r,i){
+    return '<div class="fi"><div class="fr '+(i===0?'g':'')+'">'+( i===0?'★':i+1)+'</div><div class="fn">'+esc(r.name)+'</div><div class="fp">'+r.tot+' pt</div></div>';
+  }).join('');
+}
+
+// ═══════════════════════
+// UTILS
+// ═══════════════════════
+function generaOtp(){
+  var o='';for(var i=0;i<8;i++)o+=Math.floor(Math.random()*10);return o;
+}
+// colori pill giocatori — sfondo e testo
+var PILL_COLORS=[
+  {bg:'#dbeafe',tx:'#1e40af'}, // blu
+  {bg:'#dcfce7',tx:'#15803d'}, // verde
+  {bg:'#fce7f3',tx:'#9d174d'}, // rosa
+  {bg:'#fef9c3',tx:'#854d0e'}, // giallo
+  {bg:'#ede9fe',tx:'#6d28d9'}, // viola
+  {bg:'#ffedd5',tx:'#c2410c'}, // arancione
+];
+function pillHtml(nome, idx){
+  var c=PILL_COLORS[idx%PILL_COLORS.length];
+  return '<span class="gpill" style="background:'+c.bg+';color:'+c.tx+'">'+esc(nome)+'</span>';
+}
+function copiaOtp(){
+  var otp=document.getElementById('otpDisplay').textContent;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(otp).then(function(){
+      var btn=event.target;btn.textContent='Copiato!';
+      setTimeout(function(){btn.textContent='Copia';},2000);
+    });
+  }
+}
+function buildDigits(rowId,prefix,n){
+  var row=document.getElementById(rowId);row.innerHTML='';
+  for(var i=0;i<n;i++){
+    var inp=document.createElement('input');
+    inp.type='tel';inp.maxLength=1;inp.className='pdig';inp.id=prefix+i;
+    if(n===8)inp.style.cssText='width:38px;height:46px;font-size:20px';
+    inp.addEventListener('input',(function(idx,el){return function(){
+      el.value=el.value.replace(/\D/g,'').slice(-1);
+      if(el.value&&idx<n-1)document.getElementById(prefix+(idx+1)).focus();
+    };})(i,inp));
+    inp.addEventListener('keydown',(function(idx,el){return function(e){
+      if(e.key==='Backspace'&&!el.value&&idx>0)document.getElementById(prefix+(idx-1)).focus();
+      if(e.key==='Enter'){if(prefix==='pd')checkPin();else checkOtp();}
+    };})(i,inp));
+    row.appendChild(inp);
+  }
+}
+function getDigits(prefix,n){
+  var s='';for(var i=0;i<n;i++)s+=(document.getElementById(prefix+i)&&document.getElementById(prefix+i).value)||'';
+  return s;
+}
+function clearDigits(prefix,n){
+  for(var i=0;i<n;i++){var d=document.getElementById(prefix+i);if(d)d.value='';}
+}
+</script>
+</body>
+</html>
