@@ -409,12 +409,12 @@ function showOnly(id){
   });
 }
 function showHome(){
-  if(!ARB && !NOME_GIOCATORE){ DB.off(); listening=false; showOnly('sRuolo'); return; }
+  if(!ARB && !NOME_GIOCATORE){ stopListen(); showOnly('sRuolo'); return; }
   showOnly('sHome'); renderHome();
 }
 document.getElementById('logoBtn').onclick=function(){
   if(ARB||NOME_GIOCATORE) showHome();
-  else { DB.off(); listening=false; showOnly('sRuolo'); }
+  else { stopListen(); showOnly('sRuolo'); }
 };
 
 // ═══════════════════════
@@ -806,105 +806,74 @@ function entraInPartita(){
 // FIREBASE
 // ═══════════════════════
 var listening=false;
+
 function startListen(){
-  if(listening){route();return;}
+  // SICUREZZA: non avviare mai Firebase senza autenticazione
+  if(!ARB && !NOME_GIOCATORE){ showOnly('sRuolo'); return; }
+  if(listening){ route(); return; }
   listening=true;
   showOnly('sLoad');
-  DB.on('value',function(snap){
-    GS=snap.val();
+  DB.on('value', onFirebase);
+}
 
-    // logout forzato giocatore se la OTP è cambiata (nuova partita)
-    if(!ARB && NOME_GIOCATORE){
-      var otpSalvata=localStorage.getItem('otp_pid');
-      var otpOra=GS?GS.otp:null;
-      if(otpOra && otpSalvata && otpOra!==otpSalvata){
-        // nuova partita — forza logout
-        NOME_GIOCATORE=null;
-        localStorage.removeItem('cr');
-        localStorage.removeItem('otp_pid');
-        localStorage.removeItem('nome_g');
-        localStorage.removeItem('otp_t');
-        localStorage.removeItem('otp_blk');
-        updateBadge();
-        showOnly('sRuolo');
-        return;
-      }
-      // se non c'è più partita
-      if(!GS){
-        NOME_GIOCATORE=null;
-        localStorage.removeItem('cr');
-        localStorage.removeItem('otp_pid');
-        localStorage.removeItem('nome_g');
-        updateBadge();
-        showOnly('sRuolo');
-        return;
-      }
+function stopListen(){
+  DB.off('value', onFirebase);
+  listening=false;
+  GS=null;
+}
+
+function onFirebase(snap){
+  GS=snap.val();
+
+  // logout forzato giocatore se OTP cambiata (nuova partita)
+  if(!ARB && NOME_GIOCATORE){
+    var otpSalvata=localStorage.getItem('otp_pid');
+    var otpOra=GS?GS.otp:null;
+    var deveForzare = (!GS) || (otpOra && otpSalvata && otpOra!==otpSalvata);
+    if(deveForzare){
+      NOME_GIOCATORE=null;
+      ['cr','otp_pid','nome_g','otp_t','otp_blk'].forEach(function(k){localStorage.removeItem(k);});
+      stopListen(); updateBadge(); showOnly('sRuolo'); return;
     }
+  }
 
-    var cur=document.querySelector('main > div:not(.hidden)');
-    var curId=cur?cur.id:'';
+  var cur=document.querySelector('main > div:not(.hidden)');
+  var curId=cur?cur.id:'';
 
-    // schermata benvenuto: non interrompere mai
-    if(curId==='sBenvenuto') return;
+  if(curId==='sBenvenuto') return;
+  if(curId==='sAttesa'){
+    if(GS&&NOME_GIOCATORE&&GS.autorizzati&&GS.autorizzati[NOME_GIOCATORE]===true) mostraBenvenuto();
+    return;
+  }
+  if(curId==='sGame')  { renderGame();   return; }
+  if(curId==='sFinale'){ renderFinale(); return; }
+  if(curId==='sHome')  { renderHome();   return; }
+  if(curId==='sRuolo'||curId==='sPin'||curId==='sOtp'||curId==='sNome'||curId==='sArbGioca') return;
 
-    // sala d'attesa: controlla se nel frattempo è stato autorizzato
-    if(curId==='sAttesa'){
-      if(GS && NOME_GIOCATORE && GS.autorizzati && GS.autorizzati[NOME_GIOCATORE]===true){
-        mostraBenvenuto();
-      }
-      // altrimenti rimane in attesa
-      return;
-    }
-
-    if(curId==='sGame'){renderGame();return;}
-    if(curId==='sFinale'){renderFinale();return;}
-    if(curId==='sHome'){renderHome();return;}
-
-    // schermate di setup/pin/ruolo/load: usa route per decidere
-    // ma solo se il giocatore è già identificato
-    if(curId==='sRuolo'||curId==='sPin'||curId==='sOtp'||curId==='sNome'||curId==='sArbGioca') return;
-
-    route();
-  });
+  route();
 }
 
 function route(){
-  if(!ARB && !NOME_GIOCATORE){ DB.off(); listening=false; showOnly('sRuolo'); return; }
+  // doppia sicurezza — non dovrebbe mai arrivare qui senza auth
+  if(!ARB && !NOME_GIOCATORE){ stopListen(); showOnly('sRuolo'); return; }
   if(!GS){
-    if(ARB){showOnly('sSetup');initSetup();}
-    else{showOnly('sLoad');document.querySelector('#sLoad p').textContent='In attesa che l\'arbitro avvii la partita…';}
+    if(ARB){ showOnly('sSetup'); initSetup(); }
+    else{ showOnly('sLoad'); document.querySelector('#sLoad p').textContent='In attesa che l\'arbitro avvii la partita…'; }
     return;
   }
-  if(GS.fase==='fine'){
-    showOnly('sFinale');renderFinale();
-    return;
-  }
-  // partita in corso
-  if(ARB){
-    showOnly('sGame');renderGame();
-    return;
-  }
-  // giocatore: verifica se è autorizzato
-  if(!NOME_GIOCATORE){
-    // non ha ancora scelto il nome — rimane in attesa
-    showOnly('sLoad');
-    document.querySelector('#sLoad p').textContent='In attesa di autorizzazione…';
-    return;
-  }
-  var autorizzato = GS.autorizzati && GS.autorizzati[NOME_GIOCATORE]===true;
-  if(autorizzato){
-    showOnly('sGame');renderGame();
-  } else {
-    // non ancora autorizzato — torna in sala d'attesa
-    mostraSalaAttesa();
-  }
+  if(GS.fase==='fine'){ showOnly('sFinale'); renderFinale(); return; }
+  if(ARB){ showOnly('sGame'); renderGame(); return; }
+  if(!NOME_GIOCATORE){ showOnly('sLoad'); document.querySelector('#sLoad p').textContent='In attesa di autorizzazione…'; return; }
+  var autorizzato=GS.autorizzati&&GS.autorizzati[NOME_GIOCATORE]===true;
+  if(autorizzato){ showOnly('sGame'); renderGame(); }
+  else { mostraSalaAttesa(); }
 }
 
 // ═══════════════════════
 // HOME
 // ═══════════════════════
 function renderHome(){
-  if(!ARB && !NOME_GIOCATORE){ DB.off(); listening=false; showOnly('sRuolo'); return; }
+  if(!ARB && !NOME_GIOCATORE){ stopListen(); showOnly('sRuolo'); return; }
   var statoEl=document.getElementById('homeStato');
   var giocEl=document.getElementById('homeGioc');
   var listEl=document.getElementById('homeGiocList');
