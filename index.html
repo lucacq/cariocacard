@@ -411,7 +411,10 @@ function showOnly(id){
   });
 }
 function showHome(){showOnly('sHome');renderHome();}
-document.getElementById('logoBtn').onclick=function(){if(GS||ARB)showHome();};
+document.getElementById('logoBtn').onclick=function(){
+  if(ARB||NOME_GIOCATORE) showHome();
+  else showOnly('sRuolo');
+};
 
 // ═══════════════════════
 // BADGE
@@ -879,6 +882,11 @@ function startListen(){
 }
 
 function route(){
+  // sicurezza: se non autenticato rimanda sempre alla scelta ruolo
+  if(!ARB && !NOME_GIOCATORE){
+    showOnly('sRuolo');
+    return;
+  }
   if(!GS){
     if(ARB){showOnly('sSetup');initSetup();}
     else{showOnly('sLoad');document.querySelector('#sLoad p').textContent='In attesa che l\'arbitro avvii la partita…';}
