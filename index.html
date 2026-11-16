@@ -524,20 +524,19 @@ function goHome(){
   } else if(cr === '0' && !ob){
     var pid = ls('otp_pid'), ng = ls('nome_g');
     if(pid && ng){
-      // verifica partita ancora valida
       vai('pLoad'); setMsg('Verifica sessione…');
       DB.once('value').then(function(snap){
         var d = snap.val();
-        if(d && d.otp && d.otp === pid){
-          S.nome = ng; aggiornaBadge(); fbOn();
-          // già autorizzato?
-          if(d.autorizzati && d.autorizzati[ng]){
-            S.gs = d; route();
-          } else {
-            S.gs = d; mostraAttesa();
-          }
+        // se non c'è partita o è conclusa o OTP diversa → disconnetti
+        if(!d || !d.otp || d.otp !== pid || d.fase === 'fine'){
+          pulisciSessione(); vai('pRuolo'); return;
+        }
+        S.nome = ng; aggiornaBadge(); fbOn();
+        S.gs = d;
+        if(d.autorizzati && d.autorizzati[ng]){
+          route();
         } else {
-          pulisciSessione(); vai('pRuolo');
+          mostraAttesa();
         }
       }).catch(function(){ pulisciSessione(); vai('pRuolo'); });
     } else {
