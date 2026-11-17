@@ -179,7 +179,7 @@ td.cs{color:#b45309;font-weight:700}
       <div class="icon">🔐</div>
       <div class="csub">Inserisci il codice di accesso a 6 caratteri</div>
       <div class="pin-wrap">
-        <input type="password" class="pin-inp" id="pinInp" maxlength="6" autocomplete="off" placeholder="······">
+        <input type="password" class="pin-inp" id="pinInp" maxlength="10" autocomplete="off" placeholder="··········">
         <button class="eye-btn" id="eyeBtn" onclick="toggleEye()">👁</button>
       </div>
       <div class="err" id="pinErr"></div>
@@ -352,7 +352,7 @@ td.cs{color:#b45309;font-weight:700}
 // CONFIGURAZIONE
 // ═══════════════════════════════════════
 var CFG = {
-  PIN: '74GG73',
+  PIN: '74GM@73GC',
   PIN_MAX: 4,
   OTP_MAX: 4,
   EMAIL: 'lucacq@me.com',
@@ -635,35 +635,43 @@ document.getElementById('pinInp').addEventListener('keydown', function(e){ if(e.
 
 function checkPin(){
   if(ls('pin_blk')){ return; }
-  var v = document.getElementById('pinInp').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
-  if(v === CFG.PIN){
-    localStorage.removeItem('pin_t');
-    S.arb = true; lsSet('cr','1'); aggiornaBadge();
-    // controlla se c'è partita in corso
-    vai('pLoad'); setMsg('Connessione…');
-    DB.child('players').once('value').then(function(snap){
-      var pl = snap.val();
-      if(pl){
-        var players = arr(pl);
-        if(players.length > 0){ mostraArbGioca(players); return; }
-      }
-      fbOn();
-    }).catch(function(){ fbOn(); });
-  } else {
-    var t = parseInt(ls('pin_t') || '0') + 1;
-    lsSet('pin_t', t);
-    var rim = CFG.PIN_MAX - t;
-    if(rim <= 0){
-      lsSet('pin_blk','1');
-      document.getElementById('pinErr').innerHTML =
-        'Accesso bloccato. <a href="#" onclick="recuperaPin()" style="color:#2563eb">Recupera accesso →</a>';
-      document.getElementById('pinInp').disabled = true;
+  var v = document.getElementById('pinInp').value.toUpperCase().replace(/[^A-Z0-9@]/g,'');
+  if(!v){ document.getElementById('pinErr').textContent='Inserisci il codice.'; return; }
+  vai('pLoad'); setMsg('Verifica…');
+  // legge il PIN da Firebase invece che dal codice
+  firebase.database().ref('config/pin').once('value').then(function(snap){
+    var pinDB = snap.val();
+    // fallback al PIN locale se Firebase non ha config
+    var pinOk = pinDB ? String(pinDB) : CFG.PIN;
+    if(v === pinOk){
+      localStorage.removeItem('pin_t');
+      S.arb = true; lsSet('cr','1'); aggiornaBadge();
+      DB.child('players').once('value').then(function(snap2){
+        var pl = snap2.val();
+        if(pl){ var players=arr(pl); if(players.length>0){ mostraArbGioca(players); return; } }
+        fbOn();
+      }).catch(function(){ fbOn(); });
     } else {
-      document.getElementById('pinErr').textContent = 'Codice errato. Tentativi rimanenti: ' + rim;
-      document.getElementById('pinInp').value = '';
-      document.getElementById('pinInp').focus();
+      vai('pPin');
+      var t = parseInt(ls('pin_t') || '0') + 1;
+      lsSet('pin_t', t);
+      var rim = CFG.PIN_MAX - t;
+      if(rim <= 0){
+        lsSet('pin_blk','1');
+        document.getElementById('pinErr').innerHTML =
+          'Accesso bloccato. <a href="#" onclick="recuperaPin()" style="color:#2563eb">Recupera accesso →</a>';
+        document.getElementById('pinInp').disabled = true;
+      } else {
+        document.getElementById('pinErr').textContent = 'Codice errato. Tentativi rimanenti: ' + rim;
+        document.getElementById('pinInp').value = '';
+        document.getElementById('pinInp').focus();
+      }
     }
-  }
+  }).catch(function(){
+    // errore Firebase — usa PIN locale come fallback
+    vai('pPin');
+    document.getElementById('pinErr').textContent = 'Errore di connessione. Riprova.';
+  });
 }
 
 function recuperaPin(){
