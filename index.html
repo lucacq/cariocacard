@@ -638,39 +638,47 @@ function checkPin(){
   var v = document.getElementById('pinInp').value.toUpperCase().replace(/[^A-Z0-9@]/g,'');
   if(!v){ document.getElementById('pinErr').textContent='Inserisci il codice.'; return; }
   vai('pLoad'); setMsg('Verifica…');
-  // legge il PIN da Firebase invece che dal codice
-  firebase.database().ref('config/pin').once('value').then(function(snap){
-    var pinDB = snap.val();
-    // fallback al PIN locale se Firebase non ha config
-    var pinOk = pinDB ? String(pinDB) : CFG.PIN;
-    if(v === pinOk){
-      localStorage.removeItem('pin_t');
-      S.arb = true; lsSet('cr','1'); aggiornaBadge();
-      DB.child('players').once('value').then(function(snap2){
-        var pl = snap2.val();
-        if(pl){ var players=arr(pl); if(players.length>0){ mostraArbGioca(players); return; } }
-        fbOn();
-      }).catch(function(){ fbOn(); });
-    } else {
-      vai('pPin');
-      var t = parseInt(ls('pin_t') || '0') + 1;
-      lsSet('pin_t', t);
-      var rim = CFG.PIN_MAX - t;
-      if(rim <= 0){
-        lsSet('pin_blk','1');
-        document.getElementById('pinErr').innerHTML =
-          'Accesso bloccato. <a href="#" onclick="recuperaPin()" style="color:#2563eb">Recupera accesso →</a>';
-        document.getElementById('pinInp').disabled = true;
-      } else {
-        document.getElementById('pinErr').textContent = 'Codice errato. Tentativi rimanenti: ' + rim;
-        document.getElementById('pinInp').value = '';
-        document.getElementById('pinInp').focus();
+  // calcola hash SHA-256 del PIN inserito
+  hashSHA256(v).then(function(hashInserito){
+    // confronta con l'hash salvato su Firebase
+    firebase.database().ref('config/pin_hash').once('value').then(function(snap){
+      var hashDB = snap.val();
+      if(!hashDB){
+        vai('pPin');
+        document.getElementById('pinErr').textContent='Configurazione mancante. Contatta l\'amministratore.';
+        return;
       }
-    }
-  }).catch(function(){
-    // errore Firebase — usa PIN locale come fallback
-    vai('pPin');
-    document.getElementById('pinErr').textContent = 'Errore di connessione. Riprova.';
+      if(hashInserito === String(hashDB)){
+        localStorage.removeItem('pin_t');
+        S.arb = true; lsSet('cr','1'); aggiornaBadge();
+        DB.child('players').once('value').then(function(snap2){
+          var pl = snap2.val();
+          if(pl){ var players=arr(pl); if(players.length>0){ mostraArbGioca(players); return; } }
+          fbOn();
+        }).catch(function(){ fbOn(); });
+      } else {
+        vai('pPin');
+        var t = parseInt(ls('pin_t') || '0') + 1; lsSet('pin_t', t);
+        var rim = CFG.PIN_MAX - t;
+        if(rim <= 0){
+          lsSet('pin_blk','1');
+          document.getElementById('pinErr').innerHTML =
+            'Accesso bloccato. <a href="#" onclick="recuperaPin()" style="color:#2563eb">Recupera accesso →</a>';
+          document.getElementById('pinInp').disabled = true;
+        } else {
+          document.getElementById('pinErr').textContent = 'Codice errato. Tentativi rimanenti: ' + rim;
+          document.getElementById('pinInp').value = '';
+          document.getElementById('pinInp').focus();
+        }
+      }
+    }).catch(function(){ vai('pPin'); document.getElementById('pinErr').textContent='Errore di connessione. Riprova.'; });
+  });
+}
+
+function hashSHA256(str){
+  var data = new TextEncoder().encode(str);
+  return crypto.subtle.digest('SHA-256', data).then(function(buf){
+    return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
   });
 }
 
